@@ -96,4 +96,98 @@ body {
 
 #appPage main {
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 700px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.card h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.form-row input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-row input[type="file"] {
+  flex: 1;
+  min-width: 140px;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1558b0;
+}
+
+#downloadTemplateBtn {
+  background: #fff;
+  color: #1a73e8;
+  border: 1px solid #1a73e8;
+  margin-bottom: 12px;
+}
+
+#downloadTemplateBtn:hover {
+  background: #f0f6ff;
+}
+
+#kelasSelect {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.status-text {
+  font-size: 13px;
+  color: #1a73e8;
+  min-height: 16px;
+}
+
+.hint {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
 }
