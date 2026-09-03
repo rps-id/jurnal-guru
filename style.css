@@ -1,0 +1,99 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f5f7;
+  color: #1a1a1a;
+}
+
+.page {
+  min-height: 100vh;
+}
+
+/* ===== LOGIN PAGE ===== */
+#loginPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-box {
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  text-align: center;
+  width: 320px;
+}
+
+.login-box h1 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.login-box p {
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.btn-google {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-google:hover {
+  background: #f7f7f7;
+}
+
+.error-text {
+  color: #d93025;
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 16px;
+}
+
+/* ===== APP PAGE ===== */
+#appPage header {
+  background: #fff;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #444;
+}
+
+.user-info button {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.user-info button:hover {
+  background: #f0f0f0;
+}
+
+#appPage main {
+  padding: 24px;
+}

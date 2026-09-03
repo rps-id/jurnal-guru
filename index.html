@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jurnal Guru</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== HALAMAN LOGIN ===== -->
+  <div id="loginPage" class="page">
+    <div class="login-box">
+      <h1>Jurnal Guru</h1>
+      <p>Masuk untuk mengakses jurnal mengajar kamu</p>
+      <button id="loginBtn" class="btn-google">
+        Login dengan Google
+      </button>
+      <p id="loginError" class="error-text"></p>
+    </div>
+  </div>
+
+  <!-- ===== HALAMAN UTAMA (SETELAH LOGIN) ===== -->
+  <div id="appPage" class="page" style="display:none;">
+    <header>
+      <h2>Jurnal Guru</h2>
+      <div class="user-info">
+        <span id="userEmail"></span>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <main>
+      <p>Selamat datang! Ini tempat konten jurnal (absensi, nilai, catatan, dll) akan dibangun.</p>
+      <!-- Konten jurnal akan ditambahkan di sini -->
+    </main>
+  </div>
+
+  <!-- ===== FIREBASE SCRIPT ===== -->
+  <script type="module" src="firebase-init.js"></script>
+</body>
+</html>
