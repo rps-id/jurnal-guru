@@ -31,12 +31,55 @@
     </header>
 
     <main>
-      <p>Selamat datang! Ini tempat konten jurnal (absensi, nilai, catatan, dll) akan dibangun.</p>
-      <!-- Konten jurnal akan ditambahkan di sini -->
+      <!-- ===== TAMBAH KELAS ===== -->
+      <section class="card">
+        <h3>Tambah Kelas</h3>
+        <div class="form-row">
+          <input type="text" id="namaKelasInput" placeholder="Nama kelas (contoh: X IPA 1)">
+          <input type="text" id="mapelKelasInput" placeholder="Mapel (contoh: Fisika)">
+          <button id="tambahKelasBtn">Tambah Kelas</button>
+        </div>
+        <p id="kelasStatus" class="status-text"></p>
+      </section>
+
+      <!-- ===== DAFTAR KELAS ===== -->
+      <section class="card">
+        <h3>Kelas Saya</h3>
+        <select id="kelasSelect">
+          <option value="">-- Pilih kelas --</option>
+        </select>
+      </section>
+
+      <!-- ===== IMPORT SISWA VIA EXCEL ===== -->
+      <section class="card">
+        <h3>Import Siswa (Excel)</h3>
+        <p class="hint">Kolom yang dibutuhkan: <b>Nama</b>, <b>NIS</b></p>
+        <button id="downloadTemplateBtn">Download Template Excel</button>
+        <div class="form-row">
+          <input type="file" id="excelFileInput" accept=".xlsx,.xls">
+          <button id="importSiswaBtn">Import ke Kelas Terpilih</button>
+        </div>
+        <p id="importStatus" class="status-text"></p>
+      </section>
+
+      <!-- ===== DAFTAR SISWA ===== -->
+      <section class="card">
+        <h3>Daftar Siswa</h3>
+        <table id="siswaTable">
+          <thead>
+            <tr><th>Nama</th><th>NIS</th></tr>
+          </thead>
+          <tbody id="siswaTableBody"></tbody>
+        </table>
+      </section>
     </main>
   </div>
 
+  <!-- ===== LIBRARY EXCEL (SheetJS) ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <!-- ===== FIREBASE SCRIPT ===== -->
   <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="kelola-kelas.js"></script>
 </body>
 </html>
