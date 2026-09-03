@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jurnal Guru</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
+  --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+  --surface: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+html, body { min-height: 100%; background: var(--bg-gradient); color: var(--text-main); }
+button, input, select, textarea { font-family: 'Poppins', sans-serif; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+/* LOGIN */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.login-card { background: var(--surface); border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 44px 38px; width: 380px; max-width: 100%; }
+.login-mark { font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 16px; }
+.login-card h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.35; margin-bottom: 10px; }
+.login-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 26px; line-height: 1.5; }
+.btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; border: 1.5px solid #cbd5e1; color: var(--text-main); }
+.btn-google:hover { background: #f8fafc; }
+.error-text { color: var(--danger); font-size: 0.8rem; margin-top: 12px; min-height: 16px; }
+
+/* APP */
+.app-container { background: var(--surface); width: 100%; max-width: 1200px; margin: 15px auto; border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-height: calc(100vh - 30px); display: flex; flex-direction: column; }
+header { background: linear-gradient(90deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 1.1rem; font-weight: 600; }
+.badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+.app-body { display: flex; flex: 1; }
+
+.sidebar { width: 220px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #e2e8f0; padding: 15px 10px; display: flex; flex-direction: column; gap: 5px; }
+.sidebar-btn { width: 100%; padding: 12px 15px; border: none; background: transparent; text-align: left; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
+.sidebar-btn:hover { background: #e0f2fe; color: var(--primary); }
+.sidebar-btn.active { background: var(--primary); color: white; font-weight: 600; }
+.sidebar-spacer { flex: 1; }
+
+.content { flex: 1; padding: 25px; overflow-y: auto; max-height: calc(100vh - 90px); }
+.kelas-aktif-bar { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; }
+.kelas-aktif-bar label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.kelas-aktif-bar select { max-width: 320px; }
+
+.page-panel { display: none; }
+.page-panel.active { display: block; }
+
+.card { background: var(--surface); border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.card-header h3 { font-size: 1rem; font-weight: 600; }
+.muted-inline { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); margin-left: 6px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.card-footer { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+
+.form-group { margin-bottom: 15px; flex: 1; }
+.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; }
+input[type="text"], input[type="date"], input[type="number"], select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; }
+textarea { resize: vertical; }
+
+.btn { background: var(--primary); color: white; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+.btn:hover { background: var(--primary-dark); }
+.btn-secondary { background: #e2e8f0; color: var(--text-main); }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; }
+.btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: #f0f9ff; }
+.btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.file-btn { cursor: pointer; }
+
+.table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+.preview-scroll { max-height: 200px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
+th.col-no, td.col-no { width: 42px; text-align: center; color: var(--text-muted); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f8fafc; }
+.empty-row { text-align: center; color: var(--text-muted); padding: 22px 12px; }
+td select, td input[type="number"] { padding: 6px 8px; font-size: 0.82rem; }
+
+.status-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+.status-badge.success { background: #d1fae5; color: #065f46; }
+.status-badge.warning { background: #fef3c7; color: #92400e; }
+.status-badge.danger { background: #fee2e2; color: #991b1b; }
+.status-badge.muted { background: #f1f5f9; color: var(--text-muted); }
+
+.hint { font-size: 0.8rem; color: var(--text-muted); margin: 4px 0 12px; }
+.status-text { font-size: 0.8rem; color: var(--primary); min-height: 16px; }
+.preview-box { background: #fff8f6; border: 1px dashed var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+.preview-actions { display: flex; gap: 10px; margin-top: 10px; }
+.catatan-form { margin-top: 10px; }
+.rekap-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: white; padding: 25px; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-box h3 { margin-bottom: 14px; font-size: 1.05rem; }
+
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 10000; display: none; justify-content: center; align-items: center; font-weight: 600; color: var(--primary); }
+.loading-overlay.open { display: flex; }
+
+@media (max-width: 780px) {
+  .app-container { margin: 0; min-height: 100vh; border-radius: 0; }
+  .app-body { flex-direction: column; }
+  .sidebar { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .sidebar-spacer { display: none; }
+  .sidebar-btn { white-space: nowrap; }
+  .content { max-height: none; padding: 18px; }
+  .form-row { flex-direction: column; gap: 0; }
+}
+</style>
+</head>
+<body>
+
+  <!-- ===== HALAMAN LOGIN ===== -->
+  <div id="loginPage" class="login-page">
+    <div class="login-card">
+      <p class="login-mark">Jurnal Guru</p>
+      <h1>Catatan mengajar, rapi di satu tempat.</h1>
+      <p class="login-sub">Kelas, absensi, nilai, dan catatan siswa — semua dalam satu jurnal digital.</p>
+      <button id="loginBtn" class="btn btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.96 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.94A9 9 0 0 0 0 9c0 1.45.35 2.83.94 4.04l3.02-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .94 4.96l3.02 2.33C4.67 5.16 6.66 3.58 9 3.58z"/>
+        </svg>
+        Masuk dengan Google
+      </button>
+      <p id="loginError" class="error-text" role="alert"></p>
+    </div>
+  </div>
+
+  <!-- ===== APLIKASI UTAMA ===== -->
+  <div id="appPage" class="app-container" style="display:none;">
+    <header>
+      <h1>Jurnal Guru</h1>
+      <span class="badge" id="userEmail">-</span>
+    </header>
+
+    <div class="app-body">
+      <aside class="sidebar">
+        <button type="button" class="sidebar-btn active" data-page="page-kelas">Kelas &amp; Siswa</button>
+        <button type="button" class="sidebar-btn" data-page="page-absensi">Absensi</button>
+        <button type="button" class="sidebar-btn" data-page="page-nilai">Nilai</button>
+        <button type="button" class="sidebar-btn" data-page="page-catatan">Catatan</button>
+        <button type="button" class="sidebar-btn" data-page="page-rekap">Rekap</button>
+        <div class="sidebar-spacer"></div>
+        <button type="button" class="btn btn-danger btn-sm" id="logoutBtn">Keluar</button>
+      </aside>
+
+      <main class="content">
+
+        <div class="kelas-aktif-bar">
+          <label for="kelasAktifSelect">Kelas Aktif</label>
+          <select id="kelasAktifSelect"><option value="">— Pilih kelas —</option></select>
+        </div>
+
+        <!-- ===== PAGE: KELAS & SISWA ===== -->
+        <section id="page-kelas" class="page-panel active">
+          <div class="card">
+            <div class="card-header">
+              <h3>Kelas Saya</h3>
+              <button type="button" class="btn btn-sm" id="btnTambahKelas">+ Tambah Kelas</button>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Nama Kelas</th><th>Mapel</th><th>Jumlah Siswa</th><th>Aksi</th></tr></thead>
+                <tbody id="tbodyKelas"><tr><td colspan="5" class="empty-row">Belum ada kelas.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Siswa <span id="siswaKelasLabel" class="muted-inline"></span></h3>
+              <div class="header-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplate">Template Excel</button>
+                <label class="btn btn-secondary btn-sm file-btn">Upload Excel<input type="file" id="fileSiswaExcel" accept=".xlsx,.xls" hidden></label>
+              </div>
+            </div>
+            <p class="hint">Kolom yang dibutuhkan pada file Excel: <b>Nama</b>, <b>NIS</b></p>
+            <div id="previewSiswaBox" class="preview-box" hidden>
+              <h4>Pratinjau Import Siswa</h4>
+              <div class="table-container preview-scroll">
+                <table id="tablePreviewSiswa">
+                  <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Status</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="preview-actions">
+                <button type="button" class="btn btn-success btn-sm" id="btnConfirmImportSiswa">Simpan Data Valid</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCancelImportSiswa">Batal</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Aksi</th></tr></thead>
+                <tbody id="tbodySiswa"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: ABSENSI ===== -->
+        <section id="page-absensi" class="page-panel">
+          <div class="card">
+            <div class="card-header"><h3>Absensi <span id="absensiKelasLabel" class="muted-inline"></span></h3></div>
+            <div class="form-row">
+              <div class="form-group"><label>Tanggal Pertemuan</label><input type="date" id="absensiTanggal"></div>
+              <div class="form-group" style="flex:2;"><label>Materi</label><input type="text" id="absensiMateri" placeholder="Contoh: Hukum Newton I"></div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Kehadiran</th></tr></thead>
+                <tbody id="tbodyAbsensi"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="card-footer">
+              <button type="button" class="btn btn-primary" id="btnSimpanAbsensi">Simpan Absensi</button>
+              <p id="absensiStatus" class="status-text"></p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Riwayat Pertemuan</h3></div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Materi</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Aksi</th></tr></thead>
+                <tbody id="tbodyRiwayatAbsensi"><tr><td colspan="8" class="empty-row">Belum ada data.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: NILAI ===== -->
+        <section id="page-nilai" class="page-panel">
+          <div class="card">
+            <div class="card-header"><h3>Input Nilai <span id="nilaiKelasLabel" class="muted-inline"></span></h3></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Jenis Penilaian</label>
+                <select id="nilaiJenis">
+                  <option value="tugas">Tugas</option>
+                  <option value="ulangan_harian">Ulangan Harian</option>
+                  <option value="uts">UTS</option>
+                  <option value="uas">UAS</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex:2;"><label>Nama Penilaian</label><input type="text" id="nilaiNama" placeholder="Contoh: Tugas 1 - Gerak Lurus"></div>
+              <div class="form-group"><label>Tanggal</label><input type="date" id="nilaiTanggal"></div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th style="width:120px;">Nilai</th></tr></thead>
+                <tbody id="tbodyNilaiInput"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="card-footer">
+              <button type="button" class="btn btn-primary" id="btnSimpanNilai">Simpan Nilai</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnBatalEditNilai" hidden>Batal Edit</button>
+              <p id="nilaiStatus" class="status-text"></p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Riwayat Penilaian</h3>
+              <select id="filterRiwayatJenis">
+                <option value="">— Semua jenis —</option>
+                <option value="tugas">Tugas</option>
+                <option value="ulangan_harian">Ulangan Harian</option>
+                <option value="uts">UTS</option>
+                <option value="uas">UAS</option>
+              </select>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr><th class="col-no">No</th><th>Nama Penilaian</th><th>Jenis</th><th>Tanggal</th><th>Rata-rata</th><th>Aksi</th></tr></thead>
+                <tbody id="tbodyRiwayatNilai"><tr><td colspan="6" class="empty-row">Belum ada data.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: CATATAN ===== -->
+        <section id="page-catatan" class="page-panel">
+          <div class="card">
+            <div class="card-header">
+              <h3>Catatan Siswa <span id="catatanKelasLabel" class="muted-inline"></span></h3>
+              <select id="catatanSiswaSelect"><option value="">— Pilih siswa —</option></select>
+            </div>
+            <div id="catatanForm" class="catatan-form" hidden>
+              <div class="form-row">
+                <div class="form-group"><label>Tanggal</label><input type="date" id="catatanTanggal"></div>
+                <div class="form-group" style="flex:2;"><label>Catatan</label><textarea id="catatanIsi" rows="2" placeholder="Contoh: Sering terlambat masuk kelas"></textarea></div>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btnTambahCatatan">Tambah Catatan</button>
+              <p id="catatanStatus" class="status-text"></p>
+              <div class="table-container" style="margin-top:14px;">
+                <table>
+                  <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                  <tbody id="tbodyCatatan"><tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <p id="catatanEmptyHint" class="hint">Pilih siswa di atas untuk melihat dan menambah catatan.</p>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: REKAP ===== -->
+        <section id="page-rekap" class="page-panel">
+          <div class="card">
+            <div class="card-header"><h3>Rekap Kelas Aktif <span id="rekapKelasLabel" class="muted-inline"></span></h3></div>
+            <p class="rekap-desc">Unduh rekap absensi (hadir/sakit/izin/alpa) dan rata-rata nilai per jenis penilaian untuk kelas yang sedang aktif, dalam satu file Excel.</p>
+            <button type="button" class="btn btn-primary" id="btnRekapKelas">Unduh Rekap Kelas Ini</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Rekap Seluruh Kelas</h3></div>
+            <p class="rekap-desc">Unduh rekap gabungan semua kelas dalam satu file Excel — ada sheet ringkasan seluruh kelas, dan satu sheet detail per kelas.</p>
+            <button type="button" class="btn btn-primary" id="btnRekapSemua">Unduh Rekap Semua Kelas</button>
+          </div>
+          <p id="rekapStatus" class="status-text"></p>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay"><div class="modal-box" id="modalBox"></div></div>
+  <div class="loading-overlay" id="loadingOverlay">Memuat…</div>
+
+<script type="module">
+// ================================================
+// FIREBASE INIT
+// ================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
+  getDocs, getDoc, query, orderBy, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAofW28SgnD-ENyqcmJzsjqB-jyfO8HiME",
+  authDomain: "jurnal-guru-15021.firebaseapp.com",
+  projectId: "jurnal-guru-15021",
+  storageBucket: "jurnal-guru-15021.firebasestorage.app",
+  messagingSenderId: "613992565814",
+  appId: "1:613992565814:web:c3ac625865f8e3d058dc97",
+  measurementId: "G-29KTTP4P5W"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+
+let uid = null;
+let kelasCache = [];
+let siswaCache = [];
+let activeKelasId = null;
+let editingNilaiId = null;
+let tempImportSiswa = [];
+
+const JENIS_LABEL = { tugas: "Tugas", ulangan_harian: "Ulangan Harian", uts: "UTS", uas: "UAS" };
+
+// ================================================
+// UTIL
+// ================================================
+function el(id) { return document.getElementById(id); }
+function esc(str) { const d = document.createElement("div"); d.textContent = str ?? ""; return d.innerHTML; }
+function showLoading(v) { el("loadingOverlay").classList.toggle("open", v); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function openModal(html) { el("modalBox").innerHTML = html; el("modalOverlay").classList.add("open"); }
+function closeModal() { el("modalOverlay").classList.remove("open"); }
+el("modalOverlay").addEventListener("click", (e) => { if (e.target.id === "modalOverlay") closeModal(); });
+
+// ================================================
+// LOGIN / LOGOUT
+// ================================================
+el("loginBtn").addEventListener("click", () => {
+  el("loginError").textContent = "";
+  signInWithPopup(auth, provider).catch((err) => {
+    console.error(err);
+    el("loginError").textContent = "Login gagal. Coba lagi.";
+  });
+});
+el("logoutBtn").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    el("loginPage").style.display = "none";
+    el("appPage").style.display = "flex";
+    el("userEmail").textContent = user.email;
+    uid = user.uid;
+    muatKelas();
+  } else {
+    el("loginPage").style.display = "flex";
+    el("appPage").style.display = "none";
+    uid = null;
+  }
+});
+
+// ================================================
+// NAVIGASI SIDEBAR
+// ================================================
+document.querySelectorAll(".sidebar-btn[data-page]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".sidebar-btn[data-page]").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".page-panel").forEach((p) => p.classList.remove("active"));
+    btn.classList.add("active");
+    el(btn.dataset.page).classList.add("active");
+  });
+});
+
+// ================================================
+// FIRESTORE PATH HELPERS
+// ================================================
+const kelasCol = () => collection(db, "users", uid, "kelas");
+const siswaCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "siswa");
+const pertemuanCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "pertemuan");
+const nilaiCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "nilai");
+const catatanCol = (kelasId, siswaId) => collection(db, "users", uid, "kelas", kelasId, "siswa", siswaId, "catatan");
+
+// ================================================
+// KELAS
+// ================================================
+async function muatKelas() {
+  showLoading(true);
+  const snap = await getDocs(query(kelasCol(), orderBy("nama")));
+  showLoading(false);
+  kelasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const sel = el("kelasAktifSelect");
+  const prevVal = activeKelasId;
+  sel.innerHTML = '<option value="">— Pilih kelas —</option>' +
+    kelasCache.map((k) => `<option value="${k.id}">${esc(k.nama)}${k.mapel ? " · " + esc(k.mapel) : ""}</option>`).join("");
+  if (prevVal && kelasCache.some((k) => k.id === prevVal)) sel.value = prevVal;
+  else if (kelasCache.length > 0) sel.value = kelasCache[0].id;
+  activeKelasId = sel.value || null;
+
+  renderTabelKelas();
+  await onKelasAktifChange();
+}
+
+function renderTabelKelas() {
+  const tbody = el("tbodyKelas");
+  if (kelasCache.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Belum ada kelas. Klik "+ Tambah Kelas" untuk mulai.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = kelasCache.map((k, i) => `
+    <tr>
+      <td class="col-no">${i + 1}</td>
+      <td><strong>${esc(k.nama)}</strong></td>
+      <td>${esc(k.mapel || "-")}</td>
+      <td>${k.jumlahSiswa ?? "-"}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="edit-kelas" data-id="${k.id}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-kelas" data-id="${k.id}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+// delegasi klik tabel kelas (lebih stabil daripada bind ulang tiap render)
+el("tbodyKelas").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  if (btn.dataset.action === "edit-kelas") showKelasForm(btn.dataset.id);
+  if (btn.dataset.action === "hapus-kelas") hapusKelas(btn.dataset.id);
+});
+
+el("kelasAktifSelect").addEventListener("change", () => {
+  activeKelasId = el("kelasAktifSelect").value || null;
+  onKelasAktifChange();
+});
+
+async function onKelasAktifChange() {
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  const label = kelas ? `— ${kelas.nama}${kelas.mapel ? " · " + kelas.mapel : ""}` : "";
+  ["siswaKelasLabel", "absensiKelasLabel", "nilaiKelasLabel", "catatanKelasLabel", "rekapKelasLabel"].forEach((id) => { el(id).textContent = label; });
+
+  if (!activeKelasId) {
+    siswaCache = [];
+    renderTabelSiswa();
+    renderTabelAbsensiInput();
+    renderTabelNilaiInput();
+    renderCatatanSiswaSelect();
+    el("tbodyRiwayatAbsensi").innerHTML = '<tr><td colspan="8" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>';
+    el("tbodyRiwayatNilai").innerHTML = '<tr><td colspan="6" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>';
+    return;
+  }
+
+  showLoading(true);
+  const snap = await getDocs(query(siswaCol(activeKelasId), orderBy("nama")));
+  showLoading(false);
+  siswaCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  renderTabelSiswa();
+  renderTabelAbsensiInput();
+  renderTabelNilaiInput();
+  renderCatatanSiswaSelect();
+  muatRiwayatAbsensi();
+  muatRiwayatNilai();
+
+  el("absensiTanggal").value = todayStr();
+  el("nilaiTanggal").value = todayStr();
+  muatAbsensiUntukTanggal();
+}
+
+el("btnTambahKelas").addEventListener("click", () => showKelasForm());
+
+function showKelasForm(editId = null) {
+  const d = editId ? kelasCache.find((k) => k.id === editId) : { nama: "", mapel: "" };
+  openModal(`
+    <h3>${editId ? "Edit" : "Tambah"} Kelas</h3>
+    <form id="formKelas">
+      <div class="form-group"><label>Nama Kelas</label><input type="text" id="fKelasNama" value="${esc(d.nama)}" required></div>
+      <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="fKelasMapel" value="${esc(d.mapel || "")}"></div>
+      <button type="submit" class="btn" style="width:100%;">Simpan</button>
+    </form>
+  `);
+  el("formKelas").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nama = el("fKelasNama").value.trim();
+    const mapel = el("fKelasMapel").value.trim();
+    if (!nama) return;
+    showLoading(true);
+    if (editId) await updateDoc(doc(db, "users", uid, "kelas", editId), { nama, mapel });
+    else await addDoc(kelasCol(), { nama, mapel, dibuat: new Date().toISOString() });
+    showLoading(false);
+    closeModal();
+    muatKelas();
+  });
+}
+
+async function hapusKelas(kelasId) {
+  const k = kelasCache.find((x) => x.id === kelasId);
+  if (!confirm(`Hapus kelas "${k?.nama}"? Semua data siswa, absensi, nilai, dan catatan di kelas ini akan ikut terhapus.`)) return;
+  showLoading(true);
+  const siswaSnap = await getDocs(siswaCol(kelasId));
+  for (const s of siswaSnap.docs) {
+    const catSnap = await getDocs(catatanCol(kelasId, s.id));
+    for (const c of catSnap.docs) await deleteDoc(c.ref);
+    await deleteDoc(s.ref);
+  }
+  const pertemuanSnap = await getDocs(pertemuanCol(kelasId));
+  for (const p of pertemuanSnap.docs) await deleteDoc(p.ref);
+  const nilaiSnap = await getDocs(nilaiCol(kelasId));
+  for (const n of nilaiSnap.docs) await deleteDoc(n.ref);
+  await deleteDoc(doc(db, "users", uid, "kelas", kelasId));
+  showLoading(false);
+  if (activeKelasId === kelasId) activeKelasId = null;
+  muatKelas();
+}
+
+// ================================================
+// SISWA
+// ================================================
+function renderTabelSiswa() {
+  const tbody = el("tbodySiswa");
+  if (!activeKelasId) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>'; return; }
+  if (siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada siswa. Upload Excel atau unduh template di atas.</td></tr>'; return; }
+  tbody.innerHTML = siswaCache.map((s, i) => `
+    <tr>
+      <td class="col-no">${i + 1}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td><button class="btn btn-sm btn-danger" data-action="hapus-siswa" data-id="${s.id}">Hapus</button></td>
+    </tr>
+  `).join("");
+}
+el("tbodySiswa").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action='hapus-siswa']");
+  if (btn) hapusSiswa(btn.dataset.id);
+});
+
+async function hapusSiswa(siswaId) {
+  if (!confirm("Hapus siswa ini beserta seluruh catatannya?")) return;
+  showLoading(true);
+  const catSnap = await getDocs(catatanCol(activeKelasId, siswaId));
+  for (const c of catSnap.docs) await deleteDoc(c.ref);
+  await deleteDoc(doc(db, "users", uid, "kelas", activeKelasId, "siswa", siswaId));
+  showLoading(false);
+  onKelasAktifChange();
+}
+
+el("btnDownloadTemplate").addEventListener("click", () => {
+  const ws = XLSX.utils.aoa_to_sheet([["Nama", "NIS"], ["Contoh: Ahmad Fauzi", "12345"], ["Contoh: Siti Aminah", "12346"]]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Template Siswa");
+  XLSX.writeFile(wb, "template-siswa.xlsx");
+});
+
+el("fileSiswaExcel").addEventListener("change", (e) => {
+  if (!activeKelasId) { alert("Pilih kelas dulu sebelum upload."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    tempImportSiswa = [];
+    const tbody = document.querySelector("#tablePreviewSiswa tbody");
+    tbody.innerHTML = "";
+    rows.forEach((row, i) => {
+      const nama = row["Nama"] || row["nama"];
+      const nis = row["NIS"] || row["nis"];
+      const valid = !!nama;
+      tempImportSiswa.push({ nama: nama ? String(nama).trim() : "", nis: nis ? String(nis).trim() : "", valid });
+      tbody.innerHTML += `<tr><td class="col-no">${i + 1}</td><td>${esc(nama || "-")}</td><td>${esc(nis || "-")}</td><td><span class="status-badge ${valid ? "success" : "danger"}">${valid ? "Valid" : "Nama kosong"}</span></td></tr>`;
+    });
+    el("previewSiswaBox").hidden = false;
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+el("btnConfirmImportSiswa").addEventListener("click", async () => {
+  const valids = tempImportSiswa.filter((s) => s.valid);
+  if (valids.length === 0) return alert("Tidak ada data valid untuk disimpan.");
+  showLoading(true);
+  const batch = writeBatch(db);
+  valids.forEach((s) => { const ref = doc(siswaCol(activeKelasId)); batch.set(ref, { nama: s.nama, nis: s.nis }); });
+  await batch.commit();
+  showLoading(false);
+  el("previewSiswaBox").hidden = true;
+  el("fileSiswaExcel").value = "";
+  onKelasAktifChange();
+});
+el("btnCancelImportSiswa").addEventListener("click", () => { el("previewSiswaBox").hidden = true; el("fileSiswaExcel").value = ""; });
+
+// ================================================
+// ABSENSI
+// ================================================
+function renderTabelAbsensiInput() {
+  const tbody = el("tbodyAbsensi");
+  if (!activeKelasId || siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>'; return; }
+  tbody.innerHTML = siswaCache.map((s, i) => `
+    <tr>
+      <td class="col-no">${i + 1}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td>
+        <select data-absensi-siswa="${s.id}">
+          <option value="hadir">Hadir</option>
+          <option value="sakit">Sakit</option>
+          <option value="izin">Izin</option>
+          <option value="alpa">Alpa</option>
+        </select>
+      </td>
+    </tr>
+  `).join("");
+}
+
+el("absensiTanggal").addEventListener("change", muatAbsensiUntukTanggal);
+
+async function muatAbsensiUntukTanggal() {
+  if (!activeKelasId) return;
+  const tgl = el("absensiTanggal").value;
+  if (!tgl) return;
+  showLoading(true);
+  const snap = await getDoc(doc(pertemuanCol(activeKelasId), tgl));
+  showLoading(false);
+  const data = snap.exists() ? snap.data() : null;
+  el("absensiMateri").value = data?.materi || "";
+  document.querySelectorAll("[data-absensi-siswa]").forEach((sel) => {
+    sel.value = data?.absensi?.[sel.dataset.absensiSiswa] || "hadir";
+  });
+}
+
+el("btnSimpanAbsensi").addEventListener("click", async () => {
+  if (!activeKelasId) return;
+  const tgl = el("absensiTanggal").value;
+  if (!tgl) { el("absensiStatus").textContent = "Pilih tanggal dulu."; return; }
+  if (siswaCache.length === 0) { el("absensiStatus").textContent = "Belum ada siswa di kelas ini."; return; }
+  const absensi = {};
+  document.querySelectorAll("[data-absensi-siswa]").forEach((sel) => { absensi[sel.dataset.absensiSiswa] = sel.value; });
+  showLoading(true);
+  await setDoc(doc(pertemuanCol(activeKelasId), tgl), { tanggal: tgl, materi: el("absensiMateri").value.trim(), absensi });
+  showLoading(false);
+  el("absensiStatus").textContent = "Absensi tersimpan.";
+  muatRiwayatAbsensi();
+});
+
+async function muatRiwayatAbsensi() {
+  if (!activeKelasId) return;
+  showLoading(true);
+  const snap = await getDocs(query(pertemuanCol(activeKelasId), orderBy("tanggal", "desc")));
+  showLoading(false);
+  const tbody = el("tbodyRiwayatAbsensi");
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="8" class="empty-row">Belum ada data absensi.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map((d, i) => {
+    const data = d.data();
+    const rekap = { hadir: 0, sakit: 0, izin: 0, alpa: 0 };
+    Object.values(data.absensi || {}).forEach((v) => { if (rekap[v] !== undefined) rekap[v]++; });
+    return `
+      <tr>
+        <td class="col-no">${i + 1}</td>
+        <td>${data.tanggal}</td>
+        <td>${esc(data.materi || "-")}</td>
+        <td>${rekap.hadir}</td>
+        <td>${rekap.sakit}</td>
+        <td>${rekap.izin}</td>
+        <td>${rekap.alpa}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" data-action="buka-absensi" data-tgl="${data.tanggal}">Buka</button>
+          <button class="btn btn-sm btn-danger" data-action="hapus-absensi" data-tgl="${data.tanggal}">Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+// delegasi klik riwayat absensi — satu listener yang stabil, tidak perlu bind ulang tiap render
+el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const tgl = btn.dataset.tgl;
+  if (btn.dataset.action === "buka-absensi") {
+    el("absensiTanggal").value = tgl;
+    await muatAbsensiUntukTanggal();
+    el("absensiStatus").textContent = `Data tanggal ${tgl} dimuat — sunting lalu klik Simpan Absensi.`;
+    el("page-absensi").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (btn.dataset.action === "hapus-absensi") {
+    if (!confirm(`Hapus data absensi tanggal ${tgl}?`)) return;
+    showLoading(true);
+    await deleteDoc(doc(pertemuanCol(activeKelasId), tgl));
+    showLoading(false);
+    muatRiwayatAbsensi();
+  }
+});
+
+// ================================================
+// NILAI
+// ================================================
+function renderTabelNilaiInput() {
+  const tbody = el("tbodyNilaiInput");
+  if (!activeKelasId || siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>'; return; }
+  tbody.innerHTML = siswaCache.map((s, i) => `
+    <tr>
+      <td class="col-no">${i + 1}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td><input type="number" min="0" max="100" data-nilai-siswa="${s.id}" placeholder="-"></td>
+    </tr>
+  `).join("");
+}
+
+el("btnSimpanNilai").addEventListener("click", async () => {
+  if (!activeKelasId) return;
+  const nama = el("nilaiNama").value.trim();
+  const jenis = el("nilaiJenis").value;
+  const tanggal = el("nilaiTanggal").value;
+  if (!nama || !tanggal) { el("nilaiStatus").textContent = "Nama penilaian dan tanggal wajib diisi."; return; }
+  const nilaiMap = {};
+  document.querySelectorAll("[data-nilai-siswa]").forEach((inp) => { if (inp.value !== "") nilaiMap[inp.dataset.nilaiSiswa] = Number(inp.value); });
+  if (Object.keys(nilaiMap).length === 0) { el("nilaiStatus").textContent = "Isi minimal satu nilai siswa."; return; }
+  showLoading(true);
+  const payload = { jenis, nama, tanggal, nilai: nilaiMap };
+  if (editingNilaiId) await updateDoc(doc(nilaiCol(activeKelasId), editingNilaiId), payload);
+  else await addDoc(nilaiCol(activeKelasId), payload);
+  showLoading(false);
+  el("nilaiStatus").textContent = "Nilai tersimpan.";
+  batalEditNilai();
+  muatRiwayatNilai();
+});
+
+function batalEditNilai() {
+  editingNilaiId = null;
+  el("btnBatalEditNilai").hidden = true;
+  el("nilaiNama").value = "";
+  document.querySelectorAll("[data-nilai-siswa]").forEach((i) => (i.value = ""));
+  el("nilaiTanggal").value = todayStr();
+}
+el("btnBatalEditNilai").addEventListener("click", batalEditNilai);
+el("filterRiwayatJenis").addEventListener("change", muatRiwayatNilai);
+
+async function muatRiwayatNilai() {
+  if (!activeKelasId) return;
+  showLoading(true);
+  const snap = await getDocs(query(nilaiCol(activeKelasId), orderBy("tanggal", "desc")));
+  showLoading(false);
+  const filterJenis = el("filterRiwayatJenis").value;
+  let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  if (filterJenis) list = list.filter((n) => n.jenis === filterJenis);
+  const tbody = el("tbodyRiwayatNilai");
+  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Belum ada data nilai.</td></tr>'; return; }
+  tbody.innerHTML = list.map((n, i) => {
+    const nilaiValues = Object.values(n.nilai || {});
+    const avg = nilaiValues.length ? (nilaiValues.reduce((a, b) => a + b, 0) / nilaiValues.length).toFixed(1) : "-";
+    return `
+      <tr>
+        <td class="col-no">${i + 1}</td>
+        <td>${esc(n.nama)}</td>
+        <td><span class="status-badge muted">${JENIS_LABEL[n.jenis] || n.jenis}</span></td>
+        <td>${n.tanggal}</td>
+        <td>${avg}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" data-action="edit-nilai" data-id="${n.id}">Edit</button>
+          <button class="btn btn-sm btn-danger" data-action="hapus-nilai" data-id="${n.id}">Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+  el("tbodyRiwayatNilai")._listCache = list;
+}
+el("tbodyRiwayatNilai").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const list = el("tbodyRiwayatNilai")._listCache || [];
+  if (btn.dataset.action === "edit-nilai") editNilai(btn.dataset.id, list);
+  if (btn.dataset.action === "hapus-nilai") hapusNilai(btn.dataset.id);
+});
+
+function editNilai(nilaiId, list) {
+  const n = list.find((x) => x.id === nilaiId);
+  if (!n) return;
+  editingNilaiId = nilaiId;
+  el("nilaiJenis").value = n.jenis;
+  el("nilaiNama").value = n.nama;
+  el("nilaiTanggal").value = n.tanggal;
+  document.querySelectorAll("[data-nilai-siswa]").forEach((inp) => { inp.value = n.nilai?.[inp.dataset.nilaiSiswa] ?? ""; });
+  el("btnBatalEditNilai").hidden = false;
+  el("page-nilai").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function hapusNilai(nilaiId) {
+  if (!confirm("Hapus data penilaian ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(nilaiCol(activeKelasId), nilaiId));
+  showLoading(false);
+  if (editingNilaiId === nilaiId) batalEditNilai();
+  muatRiwayatNilai();
+}
+
+// ================================================
+// CATATAN
+// ================================================
+function renderCatatanSiswaSelect() {
+  const sel = el("catatanSiswaSelect");
+  sel.innerHTML = '<option value="">— Pilih siswa —</option>' + siswaCache.map((s) => `<option value="${s.id}">${esc(s.nama)}</option>`).join("");
+  el("catatanForm").hidden = true;
+  el("catatanEmptyHint").hidden = false;
+}
+
+el("catatanSiswaSelect").addEventListener("change", async () => {
+  const siswaId = el("catatanSiswaSelect").value;
+  if (!siswaId) { el("catatanForm").hidden = true; el("catatanEmptyHint").hidden = false; return; }
+  el("catatanForm").hidden = false;
+  el("catatanEmptyHint").hidden = true;
+  el("catatanTanggal").value = todayStr();
+  el("catatanIsi").value = "";
+  el("catatanStatus").textContent = "";
+  muatCatatan(siswaId);
+});
+
+async function muatCatatan(siswaId) {
+  showLoading(true);
+  const snap = await getDocs(query(catatanCol(activeKelasId, siswaId), orderBy("tanggal", "desc")));
+  showLoading(false);
+  const tbody = el("tbodyCatatan");
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map((d, i) => {
+    const data = d.data();
+    return `<tr><td class="col-no">${i + 1}</td><td>${data.tanggal}</td><td>${esc(data.isi)}</td><td><button class="btn btn-sm btn-danger" data-action="hapus-catatan" data-id="${d.id}">Hapus</button></td></tr>`;
+  }).join("");
+}
+el("tbodyCatatan").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action='hapus-catatan']");
+  if (!btn) return;
+  const siswaId = el("catatanSiswaSelect").value;
+  if (!confirm("Hapus catatan ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(catatanCol(activeKelasId, siswaId), btn.dataset.id));
+  showLoading(false);
+  muatCatatan(siswaId);
+});
+
+el("btnTambahCatatan").addEventListener("click", async () => {
+  const siswaId = el("catatanSiswaSelect").value;
+  const tanggal = el("catatanTanggal").value;
+  const isi = el("catatanIsi").value.trim();
+  if (!siswaId) return;
+  if (!tanggal || !isi) { el("catatanStatus").textContent = "Tanggal dan isi catatan wajib diisi."; return; }
+  showLoading(true);
+  await addDoc(catatanCol(activeKelasId, siswaId), { tanggal, isi });
+  showLoading(false);
+  el("catatanIsi").value = "";
+  el("catatanStatus").textContent = "Catatan tersimpan.";
+  muatCatatan(siswaId);
+});
+
+// ================================================
+// REKAP / EXPORT EXCEL
+// ================================================
+async function fetchRekapKelas(kelasId) {
+  const siswaSnap = await getDocs(query(siswaCol(kelasId), orderBy("nama")));
+  const siswaList = siswaSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const pertemuanSnap = await getDocs(pertemuanCol(kelasId));
+  const absensiRekap = {};
+  siswaList.forEach((s) => { absensiRekap[s.id] = { hadir: 0, sakit: 0, izin: 0, alpa: 0 }; });
+  pertemuanSnap.docs.forEach((d) => {
+    const data = d.data();
+    Object.entries(data.absensi || {}).forEach(([sid, status]) => {
+      if (absensiRekap[sid] && absensiRekap[sid][status] !== undefined) absensiRekap[sid][status]++;
+    });
+  });
+
+  const nilaiSnap = await getDocs(nilaiCol(kelasId));
+  const nilaiRekap = {};
+  siswaList.forEach((s) => { nilaiRekap[s.id] = { tugas: [], ulangan_harian: [], uts: [], uas: [] }; });
+  nilaiSnap.docs.forEach((d) => {
+    const data = d.data();
+    Object.entries(data.nilai || {}).forEach(([sid, val]) => {
+      if (nilaiRekap[sid] && nilaiRekap[sid][data.jenis]) nilaiRekap[sid][data.jenis].push(val);
+    });
+  });
+
+  const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
+
+  return siswaList.map((s, i) => {
+    const ab = absensiRekap[s.id];
+    const nl = nilaiRekap[s.id];
+    const semua = [...nl.tugas, ...nl.ulangan_harian, ...nl.uts, ...nl.uas];
+    return {
+      no: i + 1, nama: s.nama, nis: s.nis || "",
+      hadir: ab.hadir, sakit: ab.sakit, izin: ab.izin, alpa: ab.alpa,
+      rataTugas: avg(nl.tugas), rataUH: avg(nl.ulangan_harian), rataUTS: avg(nl.uts), rataUAS: avg(nl.uas),
+      rataKeseluruhan: avg(semua)
+    };
+  });
+}
+
+function fmt(v) { return v == null ? "-" : v.toFixed(1); }
+
+function rowsToAoa(rows, withKelas) {
+  const header = withKelas
+    ? ["No", "Kelas", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"]
+    : ["No", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"];
+  const body = rows.map((r) => withKelas
+    ? [r.no, r.kelasNama, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]
+    : [r.no, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]);
+  return [header, ...body];
+}
+
+el("btnRekapKelas").addEventListener("click", async () => {
+  if (!activeKelasId) { el("rekapStatus").textContent = "Pilih kelas aktif dulu."; return; }
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  showLoading(true);
+  const rows = await fetchRekapKelas(activeKelasId);
+  showLoading(false);
+  if (rows.length === 0) { el("rekapStatus").textContent = "Kelas ini belum punya siswa."; return; }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+  XLSX.writeFile(wb, `rekap-${kelas.nama}.xlsx`);
+  el("rekapStatus").textContent = `Rekap kelas ${kelas.nama} berhasil diunduh.`;
+});
+
+el("btnRekapSemua").addEventListener("click", async () => {
+  if (kelasCache.length === 0) { el("rekapStatus").textContent = "Belum ada kelas."; return; }
+  showLoading(true);
+  const wb = XLSX.utils.book_new();
+  const combined = [];
+  for (const k of kelasCache) {
+    const rows = await fetchRekapKelas(k.id);
+    rows.forEach((r) => combined.push({ ...r, kelasNama: k.nama }));
+    const sheetName = k.nama.replace(/[\\/?*[\]:]/g, "").substring(0, 31) || "Kelas";
+    const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+  const ringkasan = combined.map((r, i) => ({ ...r, no: i + 1 }));
+  const wsRingkasan = XLSX.utils.aoa_to_sheet(rowsToAoa(ringkasan, true));
+  XLSX.utils.book_append_sheet(wb, wsRingkasan, "Ringkasan Semua Kelas");
+  // pindahkan sheet ringkasan ke posisi paling depan
+  const order = ["Ringkasan Semua Kelas", ...wb.SheetNames.filter((n) => n !== "Ringkasan Semua Kelas")];
+  wb.SheetNames = order;
+  showLoading(false);
+  XLSX.writeFile(wb, "rekap-semua-kelas.xlsx");
+  el("rekapStatus").textContent = "Rekap semua kelas berhasil diunduh.";
+});
+</script>
+</body>
+</html>
