@@ -73,7 +73,7 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     // Sudah login -> tampilkan halaman utama
     loginPage.style.display = "none";
-    appPage.style.display = "block";
+    appPage.style.display = "flex";
     userEmailEl.textContent = user.email;
   } else {
     // Belum login -> tampilkan halaman login
