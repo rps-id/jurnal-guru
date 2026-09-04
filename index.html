@@ -418,7 +418,7 @@ provider.addScope("https://www.googleapis.com/auth/drive.file");
 provider.setCustomParameters({ prompt: "consent" });
    
 let uid = null;
-let driveAccessToken = null;
+let driveAccessToken = sessionStorage.getItem("drive_token") || null;
 let kelasCache = [];
 let siswaCache = [];
 let activeKelasId = null;
@@ -443,9 +443,12 @@ function handleAuthResult(result) {
     const cred = GoogleAuthProvider.credentialFromResult(result);
     if (cred && cred.accessToken) {
       driveAccessToken = cred.accessToken;
+      sessionStorage.setItem("drive_token", driveAccessToken);
       updateDriveStatus(true);
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    console.error("Gagal mengambil token Drive:", e);
+  }
 }
 
 function updateDriveStatus(connected) {
@@ -455,6 +458,10 @@ function updateDriveStatus(connected) {
   else { badge.textContent = "Drive belum terhubung"; badge.className = "status-badge danger"; }
 }
 
+if (driveAccessToken) {
+  updateDriveStatus(true);
+}
+
 el("loginBtn").addEventListener("click", () => {
   el("loginError").textContent = "";
   signInWithPopup(auth, provider).then(handleAuthResult).catch((err) => {
@@ -462,7 +469,12 @@ el("loginBtn").addEventListener("click", () => {
     el("loginError").textContent = "Login gagal. Coba lagi.";
   });
 });
-el("logoutBtn").addEventListener("click", () => signOut(auth));
+
+el("logoutBtn").addEventListener("click", () => {
+  sessionStorage.removeItem("drive_token");
+  driveAccessToken = null;
+  signOut(auth);
+});
 
 el("btnHubungkanDrive").addEventListener("click", () => {
   el("materiStatus").textContent = "Menghubungkan ke Google Drive...";
@@ -1155,8 +1167,9 @@ el("btnUploadMateri").addEventListener("click", async () => {
     console.error(err);
     if (String(err.message).includes("401")) {
       driveAccessToken = null;
+      sessionStorage.removeItem("drive_token");
       updateDriveStatus(false);
-      el("materiStatus").textContent = "Sesi Drive kadaluarsa, klik 'Hubungkan ke Google Drive' lagi lalu ulangi upload.";
+      el("materiStatus").textContent = "Sesi Drive kadaluarsa, klik 'Hubungkan / Sambungkan Ulang ke Google Drive' di atas.";
     } else {
       el("materiStatus").textContent = "Gagal upload: " + err.message;
     }
