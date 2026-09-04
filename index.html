@@ -415,7 +415,8 @@ const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 provider.addScope("https://www.googleapis.com/auth/drive.file");
-
+provider.setCustomParameters({ prompt: "consent" });
+   
 let uid = null;
 let driveAccessToken = null;
 let kelasCache = [];
