@@ -63,7 +63,7 @@ header h1 { font-size: 1.1rem; font-weight: 600; }
 .form-group { margin-bottom: 15px; flex: 1; }
 .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
 label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; }
-input[type="text"], input[type="date"], input[type="number"], select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; }
+input[type="text"], input[type="date"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; }
 textarea { resize: vertical; }
 
 .btn { background: var(--primary); color: white; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
@@ -108,6 +108,7 @@ td select, td input[type="number"] { padding: 6px 8px; font-size: 0.82rem; }
 .modal-overlay.open { display: flex; }
 .modal-box { background: white; padding: 25px; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
 .modal-box h3 { margin-bottom: 14px; font-size: 1.05rem; }
+.modal-box.wide { max-width: 800px; }
 
 .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 10000; display: none; justify-content: center; align-items: center; font-weight: 600; color: var(--primary); }
 .loading-overlay.open { display: flex; }
@@ -133,6 +134,9 @@ select.status-sakit, select.status-izin { background: #fef3c7; color: #92400e; f
 select.status-dispen { background: #dbeafe; color: #1e40af; font-weight: 600; border-color: #bfdbfe; }
 select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; border-color: #fecaca; }
 
+.materi-group { margin-bottom: 16px; }
+.materi-group-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+
 @media (max-width: 780px) {
   .app-container { margin: 0; min-height: 100vh; border-radius: 0; }
   .app-body { flex-direction: column; }
@@ -145,12 +149,11 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
 </style>
  </head>
  <body>
-  <!-- ===== HALAMAN LOGIN ===== -->
   <div id="loginPage" class="login-page">
    <div class="login-card">
     <p class="login-mark">Jurnal Guru</p>
     <h1>Catatan mengajar, rapi di satu tempat.</h1>
-    <p class="login-sub">Kelas, absensi, nilai, dan catatan siswa — semua dalam satu jurnal digital.</p>
+    <p class="login-sub">Kelas, absensi, nilai, catatan, dan materi siswa - semua dalam satu jurnal digital.</p>
     <button id="loginBtn" class="btn btn-google">
      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
       <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z" /> <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z" /> <path fill="#FBBC05" d="M3.96 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.94A9 9 0 0 0 0 9c0 1.45.35 2.83.94 4.04l3.02-2.33z" /> <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .94 4.96l3.02 2.33C4.67 5.16 6.66 3.58 9 3.58z" />
@@ -160,7 +163,6 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
     <p id="loginError" class="error-text" role="alert"></p>
    </div>
   </div>
-  <!-- ===== APLIKASI UTAMA ===== -->
   <div id="appPage" class="app-container" style="display:none;">
    <header>
     <h1>Jurnal Guru</h1>
@@ -172,15 +174,16 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
      <button type="button" class="sidebar-btn" data-page="page-absensi">Absensi</button>
      <button type="button" class="sidebar-btn" data-page="page-nilai">Nilai</button>
      <button type="button" class="sidebar-btn" data-page="page-catatan">Catatan</button>
+     <button type="button" class="sidebar-btn" data-page="page-materi">Materi</button>
      <button type="button" class="sidebar-btn" data-page="page-rekap">Rekap</button>
      <div class="sidebar-spacer"></div>
      <button type="button" class="btn btn-danger btn-sm" id="logoutBtn">Keluar</button>
     </aside>
     <main class="content">
      <div class="kelas-aktif-bar">
-      <label for="kelasAktifSelect">Kelas Aktif</label> <select id="kelasAktifSelect"><option value="">— Pilih kelas —</option></select>
+      <label for="kelasAktifSelect">Kelas Aktif</label> <select id="kelasAktifSelect"><option value="">-- Pilih kelas --</option></select>
      </div>
-     <!-- ===== PAGE: KELAS & SISWA ===== -->
+
      <section id="page-kelas" class="page-panel active">
       <div class="card">
        <div class="card-header">
@@ -189,20 +192,8 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        </div>
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Nama Kelas</th>
-           <th>Mapel</th>
-           <th>Jumlah Siswa</th>
-           <th>Aksi</th>
-          </tr>
-         </thead>
-         <tbody id="tbodyKelas">
-          <tr>
-           <td colspan="5" class="empty-row">Belum ada kelas.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Nama Kelas</th><th>Mapel</th><th>Jumlah Siswa</th><th>Aksi</th></tr></thead>
+         <tbody id="tbodyKelas"><tr><td colspan="5" class="empty-row">Belum ada kelas.</td></tr></tbody>
         </table>
        </div>
       </div>
@@ -219,14 +210,7 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <h4>Pratinjau Import Siswa</h4>
         <div class="table-container preview-scroll">
          <table id="tablePreviewSiswa">
-          <thead>
-           <tr>
-            <th class="col-no">No</th>
-            <th>Nama</th>
-            <th>NIS</th>
-            <th>Status</th>
-           </tr>
-          </thead>
+          <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Status</th></tr></thead>
           <tbody></tbody>
          </table>
         </div>
@@ -237,37 +221,28 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        </div>
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Nama</th>
-           <th>NIS</th>
-           <th>Aksi</th>
-          </tr>
-         </thead>
-         <tbody id="tbodySiswa">
-          <tr>
-           <td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Aksi</th></tr></thead>
+         <tbody id="tbodySiswa"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
       </div>
      </section>
-     <!-- ===== PAGE: ABSENSI ===== -->
+
      <section id="page-absensi" class="page-panel">
       <div class="card">
        <div class="card-header">
         <h3>Absensi <span id="absensiKelasLabel" class="muted-inline"></span></h3>
        </div>
        <div class="form-row">
-        <div class="form-group">
-         <label>Tanggal Pertemuan</label><input type="date" id="absensiTanggal">
-        </div>
-        <div class="form-group" style="flex:2;">
-         <label>Materi</label><input type="text" id="absensiMateri" placeholder="Contoh: Hukum Newton I">
-        </div>
+        <div class="form-group"><label>Tanggal Pertemuan</label><input type="date" id="absensiTanggal"></div>
+        <div class="form-group" style="flex:2;"><label>Materi</label><input type="text" id="absensiMateri" placeholder="Contoh: Hukum Newton I"></div>
        </div>
+
+       <div class="header-actions" style="margin-bottom:6px;">
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplateAbsensi">Template Absensi (Excel)</button>
+        <label class="btn btn-secondary btn-sm file-btn">Upload Absensi Excel<input type="file" id="fileAbsensiExcel" accept=".xlsx,.xls" hidden></label>
+       </div>
+       <p class="hint">Kolom Kehadiran diisi kode: <b>H</b>=Hadir, <b>S</b>=Sakit, <b>I</b>=Izin, <b>D</b>=Dispen, <b>A</b>=Alpa. Nama &amp; NIS pada template otomatis mengikuti siswa di kelas aktif. Setelah upload, tetap cek dulu lalu klik Simpan Absensi.</p>
 
        <div class="absensi-summary" id="absensiSummary">
         <button type="button" class="summary-badge sb-hadir" data-status="hadir">Hadir <span>0</span></button>
@@ -280,19 +255,8 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
 
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Nama</th>
-           <th>NIS</th>
-           <th>Kehadiran</th>
-          </tr>
-         </thead>
-         <tbody id="tbodyAbsensi">
-          <tr>
-           <td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Kehadiran</th></tr></thead>
+         <tbody id="tbodyAbsensi"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
        <div class="card-footer">
@@ -301,65 +265,37 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        </div>
       </div>
       <div class="card">
-       <div class="card-header">
-        <h3>Riwayat Pertemuan</h3>
-       </div>
+       <div class="card-header"><h3>Riwayat Pertemuan</h3></div>
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Tanggal</th>
-           <th>Materi</th>
-           <th>Hadir</th>
-           <th>Sakit</th>
-           <th>Izin</th>
-           <th>Dispen</th>
-           <th>Alpa</th>
-           <th>Aksi</th>
-          </tr>
-         </thead>
-         <tbody id="tbodyRiwayatAbsensi">
-          <tr>
-           <td colspan="9" class="empty-row">Belum ada data.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Materi</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Dispen</th><th>Alpa</th><th>Aksi</th></tr></thead>
+         <tbody id="tbodyRiwayatAbsensi"><tr><td colspan="9" class="empty-row">Belum ada data.</td></tr></tbody>
         </table>
        </div>
       </div>
      </section>
-     <!-- ===== PAGE: NILAI ===== -->
+
      <section id="page-nilai" class="page-panel">
       <div class="card">
-       <div class="card-header">
-        <h3>Input Nilai <span id="nilaiKelasLabel" class="muted-inline"></span></h3>
-       </div>
+       <div class="card-header"><h3>Input Nilai <span id="nilaiKelasLabel" class="muted-inline"></span></h3></div>
        <div class="form-row">
         <div class="form-group">
          <label>Jenis Penilaian</label> <select id="nilaiJenis"> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
         </div>
-        <div class="form-group" style="flex:2;">
-         <label>Nama Penilaian</label><input type="text" id="nilaiNama" placeholder="Contoh: Tugas 1 - Gerak Lurus">
-        </div>
-        <div class="form-group">
-         <label>Tanggal</label><input type="date" id="nilaiTanggal">
-        </div>
+        <div class="form-group" style="flex:2;"><label>Nama Penilaian</label><input type="text" id="nilaiNama" placeholder="Contoh: Tugas 1 - Gerak Lurus"></div>
+        <div class="form-group"><label>Tanggal</label><input type="date" id="nilaiTanggal"></div>
        </div>
+
+       <div class="header-actions" style="margin-bottom:6px;">
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplateNilai">Template Nilai (Excel)</button>
+        <label class="btn btn-secondary btn-sm file-btn">Upload Nilai Excel<input type="file" id="fileNilaiExcel" accept=".xlsx,.xls" hidden></label>
+       </div>
+       <p class="hint">Template berisi Nama &amp; NIS siswa di kelas aktif secara otomatis - isi kolom Nilai lalu upload kembali. Lengkapi Jenis/Nama Penilaian/Tanggal di atas, lalu klik Simpan Nilai.</p>
+
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Nama</th>
-           <th>NIS</th>
-           <th style="width:120px;">Nilai</th>
-          </tr>
-         </thead>
-         <tbody id="tbodyNilaiInput">
-          <tr>
-           <td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th style="width:120px;">Nilai</th></tr></thead>
+         <tbody id="tbodyNilaiInput"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
        <div class="card-footer">
@@ -371,97 +307,90 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
       <div class="card">
        <div class="card-header">
         <h3>Riwayat Penilaian</h3>
-        <select id="filterRiwayatJenis"> <option value="">— Semua jenis —</option> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
+        <select id="filterRiwayatJenis"> <option value="">-- Semua jenis --</option> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
        </div>
        <div class="table-container">
         <table>
-         <thead>
-          <tr>
-           <th class="col-no">No</th>
-           <th>Nama Penilaian</th>
-           <th>Jenis</th>
-           <th>Tanggal</th>
-           <th>Rata-rata</th>
-           <th>Aksi</th>
-          </tr>
-         </thead>
-         <tbody id="tbodyRiwayatNilai">
-          <tr>
-           <td colspan="6" class="empty-row">Belum ada data.</td>
-          </tr>
-         </tbody>
+         <thead><tr><th class="col-no">No</th><th>Nama Penilaian</th><th>Jenis</th><th>Tanggal</th><th>Rata-rata</th><th>Aksi</th></tr></thead>
+         <tbody id="tbodyRiwayatNilai"><tr><td colspan="6" class="empty-row">Belum ada data.</td></tr></tbody>
         </table>
        </div>
       </div>
      </section>
-     <!-- ===== PAGE: CATATAN ===== -->
+
      <section id="page-catatan" class="page-panel">
       <div class="card">
        <div class="card-header">
         <h3>Catatan Siswa <span id="catatanKelasLabel" class="muted-inline"></span></h3>
-        <select id="catatanSiswaSelect"><option value="">— Pilih siswa —</option></select>
+        <select id="catatanSiswaSelect"><option value="">-- Pilih siswa --</option></select>
        </div>
        <div id="catatanForm" class="catatan-form" hidden>
         <div class="form-row">
-         <div class="form-group">
-          <label>Tanggal</label><input type="date" id="catatanTanggal">
-         </div>
-         <div class="form-group" style="flex:2;">
-          <label>Catatan</label><textarea id="catatanIsi" rows="2" placeholder="Contoh: Sering terlambat masuk kelas"></textarea>
-         </div>
+         <div class="form-group"><label>Tanggal</label><input type="date" id="catatanTanggal"></div>
+         <div class="form-group" style="flex:2;"><label>Catatan</label><textarea id="catatanIsi" rows="2" placeholder="Contoh: Sering terlambat masuk kelas"></textarea></div>
         </div>
         <button type="button" class="btn btn-primary btn-sm" id="btnTambahCatatan">Tambah Catatan</button>
         <p id="catatanStatus" class="status-text"></p>
         <div class="table-container" style="margin-top:14px;">
          <table>
-          <thead>
-           <tr>
-            <th class="col-no">No</th>
-            <th>Tanggal</th>
-            <th>Catatan</th>
-            <th>Aksi</th>
-           </tr>
-          </thead>
-          <tbody id="tbodyCatatan">
-           <tr>
-            <td colspan="4" class="empty-row">Belum ada catatan.</td>
-           </tr>
-          </tbody>
+          <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Catatan</th><th>Aksi</th></tr></thead>
+          <tbody id="tbodyCatatan"><tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr></tbody>
          </table>
         </div>
        </div>
        <p id="catatanEmptyHint" class="hint">Pilih siswa di atas untuk melihat dan menambah catatan.</p>
       </div>
      </section>
-     <!-- ===== PAGE: REKAP ===== -->
-     <section id="page-rekap" class="page-panel">
+
+     <section id="page-materi" class="page-panel">
       <div class="card">
        <div class="card-header">
-        <h3>Rekap Kelas Aktif <span id="rekapKelasLabel" class="muted-inline"></span></h3>
+        <h3>Materi Pembelajaran</h3>
+        <span id="driveStatusBadge" class="status-badge danger">Drive belum terhubung</span>
        </div>
+       <p class="hint">Berkas disimpan di Google Drive akun kamu sendiri (bukan di Firebase), jadi tidak makan kuota. Materi otomatis bisa dibuka siapapun yang punya link (untuk keperluan presentasi ke siswa) - jangan upload dokumen yang sifatnya rahasia di sini.</p>
+       <button type="button" class="btn btn-outline btn-sm" id="btnHubungkanDrive" style="margin-bottom:16px;">Hubungkan / Sambungkan Ulang ke Google Drive</button>
+
+       <div class="form-row">
+        <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" placeholder="Contoh: Fisika"></div>
+        <div class="form-group"><label>Sub Materi</label><input type="text" id="materiSubMateri" placeholder="Contoh: Hukum Newton"></div>
+       </div>
+       <div class="form-row">
+        <div class="form-group" style="flex:2;"><label>Judul File</label><input type="text" id="materiJudul" placeholder="Contoh: Slide Hukum Newton I"></div>
+        <div class="form-group"><label>Berkas (PDF / PPT)</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
+       </div>
+       <button type="button" class="btn btn-primary" id="btnUploadMateri">Upload ke Drive</button>
+       <p id="materiStatus" class="status-text"></p>
+      </div>
+
+      <div class="card">
+       <div class="card-header"><h3>Daftar Materi</h3></div>
+       <div id="materiListContainer"><p class="hint">Belum ada materi.</p></div>
+      </div>
+     </section>
+
+     <section id="page-rekap" class="page-panel">
+      <div class="card">
+       <div class="card-header"><h3>Rekap Kelas Aktif <span id="rekapKelasLabel" class="muted-inline"></span></h3></div>
        <p class="rekap-desc">Unduh rekap absensi (hadir/sakit/izin/dispen/alpa) dan rata-rata nilai per jenis penilaian untuk kelas yang sedang aktif, dalam satu file Excel.</p>
        <button type="button" class="btn btn-primary" id="btnRekapKelas">Unduh Rekap Kelas Ini</button>
       </div>
       <div class="card">
-       <div class="card-header">
-        <h3>Rekap Seluruh Kelas</h3>
-       </div>
-       <p class="rekap-desc">Unduh rekap gabungan semua kelas dalam satu file Excel — ada sheet ringkasan seluruh kelas, dan satu sheet detail per kelas.</p>
+       <div class="card-header"><h3>Rekap Seluruh Kelas</h3></div>
+       <p class="rekap-desc">Unduh rekap gabungan semua kelas dalam satu file Excel - ada sheet ringkasan seluruh kelas, dan satu sheet detail per kelas.</p>
        <button type="button" class="btn btn-primary" id="btnRekapSemua">Unduh Rekap Semua Kelas</button>
       </div>
       <p id="rekapStatus" class="status-text"></p>
      </section>
+
     </main>
    </div>
   </div>
   <div class="modal-overlay" id="modalOverlay">
    <div class="modal-box" id="modalBox"></div>
   </div>
-  <div class="loading-overlay" id="loadingOverlay">Memuat…</div>
+  <div class="loading-overlay" id="loadingOverlay">Memuat...</div>
   <script type="module">
-// ================================================
-// FIREBASE INIT
-// ================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
@@ -485,8 +414,10 @@ const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
+provider.addScope("https://www.googleapis.com/auth/drive.file");
 
 let uid = null;
+let driveAccessToken = null;
 let kelasCache = [];
 let siswaCache = [];
 let activeKelasId = null;
@@ -496,29 +427,52 @@ let activeSummaryStatus = null;
 
 const JENIS_LABEL = { tugas: "Tugas", ulangan_harian: "Ulangan Harian", uts: "UTS", uas: "UAS" };
 const STATUS_LABEL = { hadir: "Hadir", sakit: "Sakit", izin: "Izin", dispen: "Dispen", alpa: "Alpa" };
+const KODE_KEHADIRAN = { H: "hadir", S: "sakit", I: "izin", D: "dispen", A: "alpa" };
 
-// ================================================
-// UTIL
-// ================================================
 function el(id) { return document.getElementById(id); }
 function esc(str) { const d = document.createElement("div"); d.textContent = str ?? ""; return d.innerHTML; }
 function showLoading(v) { el("loadingOverlay").classList.toggle("open", v); }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
-function openModal(html) { el("modalBox").innerHTML = html; el("modalOverlay").classList.add("open"); }
+function openModal(html, wide) { el("modalBox").className = "modal-box" + (wide ? " wide" : ""); el("modalBox").innerHTML = html; el("modalOverlay").classList.add("open"); }
 function closeModal() { el("modalOverlay").classList.remove("open"); }
 el("modalOverlay").addEventListener("click", (e) => { if (e.target.id === "modalOverlay") closeModal(); });
 
-// ================================================
-// LOGIN / LOGOUT
-// ================================================
+function handleAuthResult(result) {
+  try {
+    const cred = GoogleAuthProvider.credentialFromResult(result);
+    if (cred && cred.accessToken) {
+      driveAccessToken = cred.accessToken;
+      updateDriveStatus(true);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function updateDriveStatus(connected) {
+  const badge = el("driveStatusBadge");
+  if (!badge) return;
+  if (connected) { badge.textContent = "Drive terhubung"; badge.className = "status-badge success"; }
+  else { badge.textContent = "Drive belum terhubung"; badge.className = "status-badge danger"; }
+}
+
 el("loginBtn").addEventListener("click", () => {
   el("loginError").textContent = "";
-  signInWithPopup(auth, provider).catch((err) => {
+  signInWithPopup(auth, provider).then(handleAuthResult).catch((err) => {
     console.error(err);
     el("loginError").textContent = "Login gagal. Coba lagi.";
   });
 });
 el("logoutBtn").addEventListener("click", () => signOut(auth));
+
+el("btnHubungkanDrive").addEventListener("click", () => {
+  el("materiStatus").textContent = "Menghubungkan ke Google Drive...";
+  signInWithPopup(auth, provider).then((result) => {
+    handleAuthResult(result);
+    el("materiStatus").textContent = driveAccessToken ? "Berhasil terhubung ke Google Drive." : "Gagal mendapatkan akses Drive, coba lagi.";
+  }).catch((err) => {
+    console.error(err);
+    el("materiStatus").textContent = "Gagal terhubung ke Drive.";
+  });
+});
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -527,6 +481,7 @@ onAuthStateChanged(auth, (user) => {
     el("userEmail").textContent = user.email;
     uid = user.uid;
     muatKelas();
+    muatMateri();
   } else {
     el("loginPage").style.display = "flex";
     el("appPage").style.display = "none";
@@ -534,9 +489,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// ================================================
-// NAVIGASI SIDEBAR
-// ================================================
 document.querySelectorAll(".sidebar-btn[data-page]").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".sidebar-btn[data-page]").forEach((b) => b.classList.remove("active"));
@@ -546,18 +498,13 @@ document.querySelectorAll(".sidebar-btn[data-page]").forEach((btn) => {
   });
 });
 
-// ================================================
-// FIRESTORE PATH HELPERS
-// ================================================
 const kelasCol = () => collection(db, "users", uid, "kelas");
 const siswaCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "siswa");
 const pertemuanCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "pertemuan");
 const nilaiCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "nilai");
 const catatanCol = (kelasId, siswaId) => collection(db, "users", uid, "kelas", kelasId, "siswa", siswaId, "catatan");
+const materiCol = () => collection(db, "users", uid, "materi");
 
-// ================================================
-// KELAS
-// ================================================
 async function muatKelas() {
   showLoading(true);
   const snap = await getDocs(query(kelasCol(), orderBy("nama")));
@@ -575,8 +522,8 @@ async function muatKelas() {
 
   const sel = el("kelasAktifSelect");
   const prevVal = activeKelasId;
-  sel.innerHTML = '<option value="">— Pilih kelas —</option>' +
-    kelasCache.map((k) => `<option value="${k.id}">${esc(k.nama)}${k.mapel ? " · " + esc(k.mapel) : ""}</option>`).join("");
+  sel.innerHTML = '<option value="">-- Pilih kelas --</option>' +
+    kelasCache.map((k) => `<option value="${k.id}">${esc(k.nama)}${k.mapel ? " - " + esc(k.mapel) : ""}</option>`).join("");
   if (prevVal && kelasCache.some((k) => k.id === prevVal)) sel.value = prevVal;
   else if (kelasCache.length > 0) sel.value = kelasCache[0].id;
   activeKelasId = sel.value || null;
@@ -618,7 +565,7 @@ el("kelasAktifSelect").addEventListener("change", () => {
 
 async function onKelasAktifChange() {
   const kelas = kelasCache.find((k) => k.id === activeKelasId);
-  const label = kelas ? `— ${kelas.nama}${kelas.mapel ? " · " + kelas.mapel : ""}` : "";
+  const label = kelas ? `- ${kelas.nama}${kelas.mapel ? " - " + kelas.mapel : ""}` : "";
   ["siswaKelasLabel", "absensiKelasLabel", "nilaiKelasLabel", "catatanKelasLabel", "rekapKelasLabel"].forEach((id) => { el(id).textContent = label; });
 
   if (!activeKelasId) {
@@ -697,9 +644,6 @@ async function hapusKelas(kelasId) {
   muatKelas();
 }
 
-// ================================================
-// SISWA
-// ================================================
 function renderTabelSiswa() {
   const tbody = el("tbodySiswa");
   if (!activeKelasId) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>'; return; }
@@ -772,9 +716,6 @@ el("btnConfirmImportSiswa").addEventListener("click", async () => {
 });
 el("btnCancelImportSiswa").addEventListener("click", () => { el("previewSiswaBox").hidden = true; el("fileSiswaExcel").value = ""; });
 
-// ================================================
-// ABSENSI
-// ================================================
 function renderTabelAbsensiInput() {
   const tbody = el("tbodyAbsensi");
   if (!activeKelasId || siswaCache.length === 0) {
@@ -884,6 +825,46 @@ el("btnSimpanAbsensi").addEventListener("click", async () => {
   muatRiwayatAbsensi();
 });
 
+el("btnDownloadTemplateAbsensi").addEventListener("click", () => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa terlebih dahulu."); return; }
+  const rows = [["No", "Nama", "NIS", "Kehadiran (H/S/I/D/A)"]];
+  siswaCache.forEach((s, i) => rows.push([i + 1, s.nama, s.nis || "", "H"]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Absensi");
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  XLSX.writeFile(wb, "template-absensi-" + (kelas?.nama || "kelas") + ".xlsx");
+});
+
+el("fileAbsensiExcel").addEventListener("change", (e) => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa dulu."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    let matched = 0, unmatched = 0;
+    rows.forEach((row) => {
+      const nis = String(row["NIS"] ?? "").trim();
+      const nama = String(row["Nama"] ?? "").trim().toLowerCase();
+      const kodeRaw = String(row["Kehadiran (H/S/I/D/A)"] ?? row["Kehadiran"] ?? "").trim().toUpperCase();
+      const status = KODE_KEHADIRAN[kodeRaw];
+      if (!status) return;
+      let siswa = null;
+      if (nis) siswa = siswaCache.find((s) => String(s.nis || "").trim() === nis);
+      if (!siswa && nama) siswa = siswaCache.find((s) => s.nama.trim().toLowerCase() === nama);
+      if (!siswa) { unmatched++; return; }
+      const sel = document.querySelector(`[data-absensi-siswa="${siswa.id}"]`);
+      if (sel) { sel.value = status; sel.className = "status-" + status; matched++; }
+    });
+    updateAbsensiSummary();
+    el("absensiStatus").textContent = "Terisi dari Excel: " + matched + " siswa cocok" + (unmatched ? ", " + unmatched + " tidak ditemukan" : "") + ". Periksa lalu klik Simpan Absensi.";
+    e.target.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+});
+
 async function muatRiwayatAbsensi() {
   if (!activeKelasId) return;
   showLoading(true);
@@ -920,7 +901,7 @@ el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
   if (btn.dataset.action === "buka-absensi") {
     el("absensiTanggal").value = tgl;
     await muatAbsensiUntukTanggal();
-    el("absensiStatus").textContent = `Data tanggal ${tgl} dimuat — sunting lalu klik Simpan Absensi.`;
+    el("absensiStatus").textContent = `Data tanggal ${tgl} dimuat - sunting lalu klik Simpan Absensi.`;
     el("page-absensi").scrollIntoView({ behavior: "smooth", block: "start" });
   }
   if (btn.dataset.action === "hapus-absensi") {
@@ -932,9 +913,6 @@ el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
   }
 });
 
-// ================================================
-// NILAI
-// ================================================
 function renderTabelNilaiInput() {
   const tbody = el("tbodyNilaiInput");
   if (!activeKelasId || siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>'; return; }
@@ -976,6 +954,44 @@ function batalEditNilai() {
 }
 el("btnBatalEditNilai").addEventListener("click", batalEditNilai);
 el("filterRiwayatJenis").addEventListener("change", muatRiwayatNilai);
+
+el("btnDownloadTemplateNilai").addEventListener("click", () => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa terlebih dahulu."); return; }
+  const rows = [["No", "Nama", "NIS", "Nilai"]];
+  siswaCache.forEach((s, i) => rows.push([i + 1, s.nama, s.nis || "", ""]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Nilai");
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  XLSX.writeFile(wb, "template-nilai-" + (kelas?.nama || "kelas") + ".xlsx");
+});
+
+el("fileNilaiExcel").addEventListener("change", (e) => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa dulu."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    let matched = 0, unmatched = 0;
+    rows.forEach((row) => {
+      const nis = String(row["NIS"] ?? "").trim();
+      const nama = String(row["Nama"] ?? "").trim().toLowerCase();
+      const nilaiRaw = row["Nilai"];
+      if (nilaiRaw === undefined || nilaiRaw === "") return;
+      let siswa = null;
+      if (nis) siswa = siswaCache.find((s) => String(s.nis || "").trim() === nis);
+      if (!siswa && nama) siswa = siswaCache.find((s) => s.nama.trim().toLowerCase() === nama);
+      if (!siswa) { unmatched++; return; }
+      const inp = document.querySelector(`[data-nilai-siswa="${siswa.id}"]`);
+      if (inp) { inp.value = Number(nilaiRaw); matched++; }
+    });
+    el("nilaiStatus").textContent = "Terisi dari Excel: " + matched + " siswa cocok" + (unmatched ? ", " + unmatched + " tidak ditemukan" : "") + ". Lengkapi Jenis/Nama/Tanggal lalu klik Simpan Nilai.";
+    e.target.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+});
 
 async function muatRiwayatNilai() {
   if (!activeKelasId) return;
@@ -1035,12 +1051,9 @@ async function hapusNilai(nilaiId) {
   muatRiwayatNilai();
 }
 
-// ================================================
-// CATATAN
-// ================================================
 function renderCatatanSiswaSelect() {
   const sel = el("catatanSiswaSelect");
-  sel.innerHTML = '<option value="">— Pilih siswa —</option>' + siswaCache.map((s) => `<option value="${s.id}">${esc(s.nama)}</option>`).join("");
+  sel.innerHTML = '<option value="">-- Pilih siswa --</option>' + siswaCache.map((s) => `<option value="${s.id}">${esc(s.nama)}</option>`).join("");
   el("catatanForm").hidden = true;
   el("catatanEmptyHint").hidden = false;
 }
@@ -1092,9 +1105,131 @@ el("btnTambahCatatan").addEventListener("click", async () => {
   muatCatatan(siswaId);
 });
 
-// ================================================
-// REKAP / EXPORT EXCEL
-// ================================================
+async function uploadToDrive(file, token) {
+  const metadata = { name: file.name, mimeType: file.type || "application/octet-stream" };
+  const form = new FormData();
+  form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+  form.append("file", file);
+  const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token },
+    body: form
+  });
+  if (!res.ok) throw new Error("Upload gagal (" + res.status + ")");
+  return res.json();
+}
+
+async function setDrivePublicReadable(fileId, token) {
+  await fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "/permissions", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify({ role: "reader", type: "anyone" })
+  });
+}
+
+el("btnUploadMateri").addEventListener("click", async () => {
+  const mapel = el("materiMapel").value.trim();
+  const sub = el("materiSubMateri").value.trim();
+  const judul = el("materiJudul").value.trim();
+  const file = el("fileMateri").files[0];
+  if (!mapel || !sub || !judul || !file) { el("materiStatus").textContent = "Lengkapi semua kolom dan pilih berkas."; return; }
+  if (!driveAccessToken) { el("materiStatus").textContent = "Hubungkan ke Google Drive dulu (tombol di atas)."; return; }
+
+  showLoading(true);
+  el("materiStatus").textContent = "Mengupload ke Drive...";
+  try {
+    const uploaded = await uploadToDrive(file, driveAccessToken);
+    await setDrivePublicReadable(uploaded.id, driveAccessToken);
+    await addDoc(materiCol(), {
+      mapel, subMateri: sub, judul,
+      driveFileId: uploaded.id,
+      mimeType: uploaded.mimeType || file.type,
+      dibuat: new Date().toISOString()
+    });
+    el("fileMateri").value = "";
+    el("materiJudul").value = "";
+    el("materiStatus").textContent = "Materi berhasil diupload.";
+    muatMateri();
+  } catch (err) {
+    console.error(err);
+    if (String(err.message).includes("401")) {
+      driveAccessToken = null;
+      updateDriveStatus(false);
+      el("materiStatus").textContent = "Sesi Drive kadaluarsa, klik 'Hubungkan ke Google Drive' lagi lalu ulangi upload.";
+    } else {
+      el("materiStatus").textContent = "Gagal upload: " + err.message;
+    }
+  }
+  showLoading(false);
+});
+
+async function muatMateri() {
+  if (!uid) return;
+  showLoading(true);
+  const snap = await getDocs(query(materiCol(), orderBy("mapel")));
+  showLoading(false);
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const container = el("materiListContainer");
+  if (list.length === 0) { container.innerHTML = '<p class="hint">Belum ada materi.</p>'; return; }
+
+  const grouped = {};
+  list.forEach((m) => {
+    const key = m.mapel + "||" + m.subMateri;
+    if (!grouped[key]) grouped[key] = { mapel: m.mapel, sub: m.subMateri, items: [] };
+    grouped[key].items.push(m);
+  });
+
+  container.innerHTML = Object.values(grouped).map((g) => `
+    <div class="materi-group">
+      <p class="materi-group-title">${esc(g.mapel)} - ${esc(g.sub)}</p>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
+          <tbody>
+            ${g.items.map((m) => `
+              <tr>
+                <td>${esc(m.judul)}</td>
+                <td><span class="status-badge muted">${(m.mimeType || "").includes("pdf") ? "PDF" : "PPT"}</span></td>
+                <td>
+                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.driveFileId}" data-judul="${esc(m.judul)}">Pratinjau</button>
+                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}" data-driveid="${m.driveFileId}">Hapus</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `).join("");
+}
+
+el("materiListContainer").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  if (btn.dataset.action === "preview-materi") {
+    openModal(`
+      <h3>${esc(btn.dataset.judul)}</h3>
+      <iframe src="https://drive.google.com/file/d/${btn.dataset.id}/preview" style="width:100%; height:60vh; border:none; border-radius:8px;" allow="autoplay"></iframe>
+      <p style="margin-top:10px;"><a href="https://drive.google.com/file/d/${btn.dataset.id}/view" target="_blank" rel="noopener">Buka di tab baru / layar penuh</a></p>
+    `, true);
+  }
+  if (btn.dataset.action === "hapus-materi") {
+    if (!confirm("Hapus materi ini? File di Google Drive juga akan dihapus.")) return;
+    showLoading(true);
+    try {
+      if (driveAccessToken) {
+        await fetch("https://www.googleapis.com/drive/v3/files/" + btn.dataset.driveid, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + driveAccessToken }
+        });
+      }
+    } catch (err) { console.error(err); }
+    await deleteDoc(doc(materiCol(), btn.dataset.docid));
+    showLoading(false);
+    muatMateri();
+  }
+});
+
 async function fetchRekapKelas(kelasId) {
   const siswaSnap = await getDocs(query(siswaCol(kelasId), orderBy("nama")));
   const siswaList = siswaSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
