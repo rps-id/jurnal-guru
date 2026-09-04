@@ -108,7 +108,7 @@ td select, td input[type="number"] { padding: 6px 8px; font-size: 0.82rem; }
 .modal-overlay.open { display: flex; }
 .modal-box { background: white; padding: 25px; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
 .modal-box h3 { margin-bottom: 14px; font-size: 1.05rem; }
-.modal-box.wide { max-width: 800px; }
+.modal-box.wide { max-width: 900px; }
 
 .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 10000; display: none; justify-content: center; align-items: center; font-weight: 600; color: var(--primary); }
 .loading-overlay.open { display: flex; }
@@ -134,8 +134,6 @@ select.status-sakit, select.status-izin { background: #fef3c7; color: #92400e; f
 select.status-dispen { background: #dbeafe; color: #1e40af; font-weight: 600; border-color: #bfdbfe; }
 select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; border-color: #fecaca; }
 
-.materi-group { margin-bottom: 16px; }
-.materi-group-title { font-weight: 600; font-size: 0.88rem; margin: 14px 0 6px; }
 .materi-breadcrumb { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; }
 .materi-breadcrumb button { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.82rem; font-weight: 600; padding: 0; }
 .materi-breadcrumb button:hover { text-decoration: underline; }
@@ -357,12 +355,11 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <h3>Tambah Materi</h3>
         <span class="status-badge success">Cloudinary Storage Aktif</span>
        </div>
-       <p class="hint">Materi dikelompokkan seperti perpustakaan: Mata Pelajaran &gt; Bab &gt; Sub Bab. Bisa upload berkas PDF/PPT ke Cloudinary, atau cukup tempel link (Google Drive, Canva, Google Slides, dsb) yang bisa langsung dipratinjau tanpa perlu diunduh.</p>
+       <p class="hint">Materi dikelompokkan: Mata Pelajaran &gt; Bab. Bisa upload berkas PDF/PPT ke Cloudinary, atau tempel link (Google Drive, Canva, Google Slides, dll) yang bisa langsung dipratinjau dan dipresentasikan.</p>
 
        <div class="form-row" style="margin-top:15px;">
         <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" list="daftarMapel" placeholder="Contoh: Fisika"><datalist id="daftarMapel"></datalist></div>
         <div class="form-group"><label>Bab</label><input type="text" id="materiBab" list="daftarBab" placeholder="Contoh: Bab 2 - Gerak Lurus"><datalist id="daftarBab"></datalist></div>
-        <div class="form-group"><label>Sub Bab</label><input type="text" id="materiSubBab" placeholder="Contoh: GLB dan GLBB"></div>
        </div>
        <div class="form-row">
         <div class="form-group" style="flex:2;"><label>Judul</label><input type="text" id="materiJudul" placeholder="Contoh: Slide GLB dan GLBB"></div>
@@ -1105,7 +1102,7 @@ el("btnTambahCatatan").addEventListener("click", async () => {
 });
 
 // ================================================
-// MATERI - PERPUSTAKAAN (Mapel > Bab > Sub Bab)
+// MATERI - PERPUSTAKAAN (Mapel > Bab)
 // Sumber: upload berkas ke Cloudinary, atau tempel link (Drive/Canva/dll)
 // ================================================
 
@@ -1118,7 +1115,6 @@ el("materiSumber").addEventListener("change", () => {
 el("btnUploadMateri").addEventListener("click", async () => {
   const mapel = el("materiMapel").value.trim();
   const bab = el("materiBab").value.trim();
-  const subBab = el("materiSubBab").value.trim();
   const judul = el("materiJudul").value.trim();
   const sumber = el("materiSumber").value;
 
@@ -1153,7 +1149,7 @@ el("btnUploadMateri").addEventListener("click", async () => {
     }
 
     await addDoc(materiCol(), {
-      mapel, bab, subBab, judul, sumber, url, mimeType,
+      mapel, bab, judul, sumber, url, mimeType,
       dibuat: new Date().toISOString()
     });
 
@@ -1229,35 +1225,31 @@ function renderMateriLibrary() {
 
   breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><button type="button" data-breadcrumb="mapel">${esc(materiSelMapel)}</button><span class="sep">/</span><strong>${esc(materiSelBab)}</strong>`;
   const items = materiAll.filter((m) => m.mapel === materiSelMapel && (m.bab || "(Tanpa Bab)") === materiSelBab);
-  const bySub = {};
-  items.forEach((m) => { const key = m.subBab || "(Tanpa Sub Bab)"; if (!bySub[key]) bySub[key] = []; bySub[key].push(m); });
 
-  container.innerHTML = Object.entries(bySub).map(([sub, list]) => `
-    <div class="materi-group">
-      <p class="materi-group-title">${esc(sub)}</p>
-      <div class="table-container">
-        <table>
-          <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
-          <tbody>
-            ${list.map((m) => {
-              const isLink = m.sumber === "link";
-              const isPdf = !isLink && ((m.mimeType || "").includes("pdf") || (m.url || "").toLowerCase().includes(".pdf"));
-              const tipeLabel = isLink ? "Link" : (isPdf ? "PDF" : "PPT");
-              return `
-              <tr>
-                <td>${esc(m.judul)}</td>
-                <td><span class="status-badge muted">${tipeLabel}</span></td>
-                <td>
-                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.id}">Pratinjau</button>
-                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}">Hapus</button>
-                </td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
+  container.innerHTML = `
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
+        <tbody>
+          ${items.map((m) => {
+            const isLink = m.sumber === "link";
+            const isPdf = !isLink && ((m.mimeType || "").includes("pdf") || (m.url || "").toLowerCase().includes(".pdf"));
+            const tipeLabel = isLink ? "Link" : (isPdf ? "PDF" : "PPT");
+            return `
+            <tr>
+              <td>${esc(m.judul)}</td>
+              <td><span class="status-badge muted">${tipeLabel}</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.id}">Pratinjau / Presentasi</button>
+                <button class="btn btn-sm btn-secondary" data-action="edit-materi" data-id="${m.id}">Edit</button>
+                <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}">Hapus</button>
+              </td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
     </div>
-  `).join("");
+  `;
 }
 
 el("materiListContainer").addEventListener("click", (e) => {
@@ -1277,18 +1269,144 @@ el("materiListContainer").addEventListener("click", (e) => {
   }
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
+
   if (btn.dataset.action === "preview-materi") {
     const m = materiAll.find((x) => x.id === btn.dataset.id);
     if (!m) return;
     const embedUrl = buildEmbedUrl(m);
     openModal(`
-      <h3>${esc(m.judul)}</h3>
-      <iframe src="${embedUrl}" style="width:100%; height:65vh; border:none; border-radius:8px;"></iframe>
-      <p style="margin-top:10px;"><a href="${esc(m.url)}" target="_blank" rel="noopener">Buka link asli / layar penuh</a></p>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0;">${esc(m.judul)}</h3>
+        <button type="button" class="btn btn-sm btn-success" id="btnFullscreenModal">Mode Presentasi</button>
+      </div>
+      <iframe id="previewIframe" src="${embedUrl}" style="width:100%; height:68vh; border:none; border-radius:8px; background:#f1f5f9;" allowfullscreen></iframe>
+      <p style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
+        <a href="${esc(m.url)}" target="_blank" rel="noopener">Buka di tab baru / Link Asli</a>
+      </p>
     `, true);
+
+    document.getElementById("btnFullscreenModal").addEventListener("click", () => {
+      const iframe = document.getElementById("previewIframe");
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+      else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+    });
   }
+
+  if (btn.dataset.action === "edit-materi") {
+    const m = materiAll.find((x) => x.id === btn.dataset.id);
+    if (!m) return;
+    showEditMateriForm(m);
+  }
+
   if (btn.dataset.action === "hapus-materi") hapusMateri(btn.dataset.docid);
 });
+
+function showEditMateriForm(m) {
+  const isLink = m.sumber === "link";
+  openModal(`
+    <h3>Edit Materi</h3>
+    <form id="formEditMateri">
+      <div class="form-group">
+        <label>Mata Pelajaran</label>
+        <input type="text" id="editMateriMapel" value="${esc(m.mapel)}" required>
+      </div>
+      <div class="form-group">
+        <label>Bab</label>
+        <input type="text" id="editMateriBab" value="${esc(m.bab)}" required>
+      </div>
+      <div class="form-group">
+        <label>Judul</label>
+        <input type="text" id="editMateriJudul" value="${esc(m.judul)}" required>
+      </div>
+      <div class="form-group">
+        <label>Sumber Materi</label>
+        <select id="editMateriSumber">
+          <option value="upload" ${!isLink ? 'selected' : ''}>Upload Berkas Baru (PDF/PPT)</option>
+          <option value="link" ${isLink ? 'selected' : ''}>Tempel Link Baru (Drive/Canva/dll)</option>
+        </select>
+      </div>
+      <div class="form-group" id="editMateriUploadGroup" style="display:${!isLink ? 'block' : 'none'};">
+        <label>Ganti Berkas (Opsional - Biarkan kosong jika tidak diganti)</label>
+        <input type="file" id="editFileMateri" accept=".pdf,.ppt,.pptx">
+      </div>
+      <div class="form-group" id="editMateriLinkGroup" style="display:${isLink ? 'block' : 'none'};">
+        <label>URL Link Materi</label>
+        <input type="text" id="editMateriLinkUrl" value="${isLink ? esc(m.url) : ''}">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+      <p id="editMateriStatus" class="status-text" style="margin-top:10px;"></p>
+    </form>
+  `);
+
+  const selectSumber = document.getElementById("editMateriSumber");
+  selectSumber.addEventListener("change", () => {
+    const isL = selectSumber.value === "link";
+    document.getElementById("editMateriUploadGroup").style.display = isL ? "none" : "block";
+    document.getElementById("editMateriLinkGroup").style.display = isL ? "block" : "none";
+  });
+
+  document.getElementById("formEditMateri").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const mapel = document.getElementById("editMateriMapel").value.trim();
+    const bab = document.getElementById("editMateriBab").value.trim();
+    const judul = document.getElementById("editMateriJudul").value.trim();
+    const sumber = selectSumber.value;
+    const statusEl = document.getElementById("editMateriStatus");
+
+    if (!mapel || !bab || !judul) {
+      statusEl.textContent = "Mapel, Bab, dan Judul wajib diisi.";
+      return;
+    }
+
+    showLoading(true);
+    try {
+      let newUrl = m.url;
+      let newMimeType = m.mimeType || "";
+
+      if (sumber === "link") {
+        const linkInput = document.getElementById("editMateriLinkUrl").value.trim();
+        if (!linkInput) {
+          showLoading(false);
+          statusEl.textContent = "URL Link wajib diisi.";
+          return;
+        }
+        newUrl = linkInput;
+        newMimeType = "";
+      } else {
+        const fileInput = document.getElementById("editFileMateri").files[0];
+        if (fileInput) {
+          statusEl.textContent = "Mengunggah berkas baru ke Cloudinary...";
+          const formData = new FormData();
+          formData.append("file", fileInput);
+          formData.append("upload_preset", UPLOAD_PRESET);
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+            method: "POST",
+            body: formData
+          });
+          if (!res.ok) throw new Error("Gagal mengunggah file baru.");
+          const data = await res.json();
+          newUrl = data.secure_url;
+          newMimeType = fileInput.type || (fileInput.name.endsWith(".pdf") ? "application/pdf" : "application/vnd.ms-powerpoint");
+        }
+      }
+
+      await updateDoc(doc(materiCol(), m.id), {
+        mapel, bab, judul, sumber, url: newUrl, mimeType: newMimeType
+      });
+
+      showLoading(false);
+      closeModal();
+      materiSelMapel = mapel;
+      materiSelBab = bab;
+      muatMateri();
+    } catch (err) {
+      console.error(err);
+      showLoading(false);
+      statusEl.textContent = "Gagal mengedit materi: " + err.message;
+    }
+  });
+}
 
 el("materiBreadcrumb").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-breadcrumb]");
@@ -1309,13 +1427,33 @@ async function hapusMateri(docId) {
 
 function buildEmbedUrl(m) {
   const url = m.url || "";
+  
+  // Handling Google Drive
   let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+
+  // Handling Google Docs/Slides/Sheets
   match = url.match(/docs\.google\.com\/(presentation|document|spreadsheets)\/d\/([^/]+)/);
   if (match) return `https://docs.google.com/${match[1]}/d/${match[2]}/embed`;
+
+  // Handling Canva
   if (url.includes("canva.com/design/")) {
     return url.includes("?") ? url + "&embed" : url + "?embed";
   }
+
+  // Handling file dari Cloudinary atau Direct Link (PDF / PPT / PPTX)
+  const lower = url.toLowerCase();
+  const isPdf = m.mimeType?.includes("pdf") || lower.endsWith(".pdf");
+  const isPpt = m.mimeType?.includes("presentation") || m.mimeType?.includes("powerpoint") || lower.endsWith(".ppt") || lower.endsWith(".pptx");
+
+  if (isPdf) {
+    return `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+  }
+  
+  if (isPpt) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+  }
+
   return url;
 }
 
