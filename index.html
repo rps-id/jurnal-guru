@@ -346,20 +346,19 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
       <div class="card">
        <div class="card-header">
         <h3>Materi Pembelajaran</h3>
-        <span id="driveStatusBadge" class="status-badge danger">Drive belum terhubung</span>
+        <span class="status-badge success">Firebase Storage Aktif</span>
        </div>
-       <p class="hint">Berkas disimpan di Google Drive akun kamu sendiri (bukan di Firebase), jadi tidak makan kuota. Materi otomatis bisa dibuka siapapun yang punya link (untuk keperluan presentasi ke siswa) - jangan upload dokumen yang sifatnya rahasia di sini.</p>
-       <button type="button" class="btn btn-outline btn-sm" id="btnHubungkanDrive" style="margin-bottom:16px;">Hubungkan / Sambungkan Ulang ke Google Drive</button>
+       <p class="hint">Unggah berkas presentasi (PDF atau PPT) langsung ke sistem. Berkas bisa langsung dipratinjau dan dipresentasikan di kelas.</p>
 
-       <div class="form-row">
+       <div class="form-row" style="margin-top:15px;">
         <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" placeholder="Contoh: Fisika"></div>
         <div class="form-group"><label>Sub Materi</label><input type="text" id="materiSubMateri" placeholder="Contoh: Hukum Newton"></div>
        </div>
        <div class="form-row">
         <div class="form-group" style="flex:2;"><label>Judul File</label><input type="text" id="materiJudul" placeholder="Contoh: Slide Hukum Newton I"></div>
-        <div class="form-group"><label>Berkas (PDF / PPT)</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
+        <div class="form-group"><label>Berkas (PDF / PPT / PPTX)</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
        </div>
-       <button type="button" class="btn btn-primary" id="btnUploadMateri">Upload ke Drive</button>
+       <button type="button" class="btn btn-primary" id="btnUploadMateri">Upload Materi</button>
        <p id="materiStatus" class="status-text"></p>
       </div>
 
@@ -390,6 +389,7 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
    <div class="modal-box" id="modalBox"></div>
   </div>
   <div class="loading-overlay" id="loadingOverlay">Memuat...</div>
+  
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -399,6 +399,9 @@ import {
   getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
   getDocs, getDoc, query, orderBy, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAofW28SgnD-ENyqcmJzsjqB-jyfO8HiME",
@@ -413,12 +416,10 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
+const storage = getStorage(fbApp);
 const provider = new GoogleAuthProvider();
-provider.addScope("https://www.googleapis.com/auth/drive.file");
-provider.setCustomParameters({ prompt: "consent" });
    
 let uid = null;
-let driveAccessToken = sessionStorage.getItem("drive_token") || null;
 let kelasCache = [];
 let siswaCache = [];
 let activeKelasId = null;
@@ -438,54 +439,15 @@ function openModal(html, wide) { el("modalBox").className = "modal-box" + (wide 
 function closeModal() { el("modalOverlay").classList.remove("open"); }
 el("modalOverlay").addEventListener("click", (e) => { if (e.target.id === "modalOverlay") closeModal(); });
 
-function handleAuthResult(result) {
-  try {
-    const cred = GoogleAuthProvider.credentialFromResult(result);
-    if (cred && cred.accessToken) {
-      driveAccessToken = cred.accessToken;
-      sessionStorage.setItem("drive_token", driveAccessToken);
-      updateDriveStatus(true);
-    }
-  } catch (e) {
-    console.error("Gagal mengambil token Drive:", e);
-  }
-}
-
-function updateDriveStatus(connected) {
-  const badge = el("driveStatusBadge");
-  if (!badge) return;
-  if (connected) { badge.textContent = "Drive terhubung"; badge.className = "status-badge success"; }
-  else { badge.textContent = "Drive belum terhubung"; badge.className = "status-badge danger"; }
-}
-
-if (driveAccessToken) {
-  updateDriveStatus(true);
-}
-
 el("loginBtn").addEventListener("click", () => {
   el("loginError").textContent = "";
-  signInWithPopup(auth, provider).then(handleAuthResult).catch((err) => {
+  signInWithPopup(auth, provider).catch((err) => {
     console.error(err);
     el("loginError").textContent = "Login gagal. Coba lagi.";
   });
 });
 
-el("logoutBtn").addEventListener("click", () => {
-  sessionStorage.removeItem("drive_token");
-  driveAccessToken = null;
-  signOut(auth);
-});
-
-el("btnHubungkanDrive").addEventListener("click", () => {
-  el("materiStatus").textContent = "Menghubungkan ke Google Drive...";
-  signInWithPopup(auth, provider).then((result) => {
-    handleAuthResult(result);
-    el("materiStatus").textContent = driveAccessToken ? "Berhasil terhubung ke Google Drive." : "Gagal mendapatkan akses Drive, coba lagi.";
-  }).catch((err) => {
-    console.error(err);
-    el("materiStatus").textContent = "Gagal terhubung ke Drive.";
-  });
-});
+el("logoutBtn").addEventListener("click", () => signOut(auth));
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -1118,61 +1080,45 @@ el("btnTambahCatatan").addEventListener("click", async () => {
   muatCatatan(siswaId);
 });
 
-async function uploadToDrive(file, token) {
-  const metadata = { name: file.name, mimeType: file.type || "application/octet-stream" };
-  const form = new FormData();
-  form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-  form.append("file", file);
-  const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + token },
-    body: form
-  });
-  if (!res.ok) throw new Error("Upload gagal (" + res.status + ")");
-  return res.json();
-}
-
-async function setDrivePublicReadable(fileId, token) {
-  await fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "/permissions", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ role: "reader", type: "anyone" })
-  });
-}
+// --- ALUR SIMPEL UPLOAD MATERI (FIREBASE STORAGE) ---
 
 el("btnUploadMateri").addEventListener("click", async () => {
   const mapel = el("materiMapel").value.trim();
   const sub = el("materiSubMateri").value.trim();
   const judul = el("materiJudul").value.trim();
   const file = el("fileMateri").files[0];
-  if (!mapel || !sub || !judul || !file) { el("materiStatus").textContent = "Lengkapi semua kolom dan pilih berkas."; return; }
-  if (!driveAccessToken) { el("materiStatus").textContent = "Hubungkan ke Google Drive dulu (tombol di atas)."; return; }
+  if (!mapel || !sub || !judul || !file) { 
+    el("materiStatus").textContent = "Lengkapi semua kolom dan pilih berkas."; 
+    return; 
+  }
 
   showLoading(true);
-  el("materiStatus").textContent = "Mengupload ke Drive...";
+  el("materiStatus").textContent = "Mengunggah berkas ke Firebase Storage...";
+
   try {
-    const uploaded = await uploadToDrive(file, driveAccessToken);
-    await setDrivePublicReadable(uploaded.id, driveAccessToken);
+    const storagePath = `materi/${uid}/${Date.now()}_${file.name}`;
+    const fileRef = ref(storage, storagePath);
+
+    await uploadBytes(fileRef, file);
+    const downloadURL = await getDownloadURL(fileRef);
+
     await addDoc(materiCol(), {
-      mapel, subMateri: sub, judul,
-      driveFileId: uploaded.id,
-      mimeType: uploaded.mimeType || file.type,
+      mapel,
+      subMateri: sub,
+      judul,
+      downloadURL,
+      storagePath,
+      mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.ms-powerpoint'),
       dibuat: new Date().toISOString()
     });
+
     el("fileMateri").value = "";
     el("materiJudul").value = "";
-    el("materiStatus").textContent = "Materi berhasil diupload.";
+    el("materiStatus").textContent = "Materi berhasil diunggah.";
     muatMateri();
   } catch (err) {
     console.error(err);
-    if (String(err.message).includes("401")) {
-      driveAccessToken = null;
-      sessionStorage.removeItem("drive_token");
-      updateDriveStatus(false);
-      el("materiStatus").textContent = "Sesi Drive kadaluarsa, klik 'Hubungkan / Sambungkan Ulang ke Google Drive' di atas.";
-    } else {
-      el("materiStatus").textContent = "Gagal upload: " + err.message;
-    }
+    el("materiStatus").textContent = "Gagal mengunggah materi: " + err.message;
   }
   showLoading(false);
 });
@@ -1200,16 +1146,18 @@ async function muatMateri() {
         <table>
           <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
           <tbody>
-            ${g.items.map((m) => `
+            ${g.items.map((m) => {
+              const isPdf = (m.mimeType || "").includes("pdf") || (m.downloadURL || "").toLowerCase().includes(".pdf");
+              return `
               <tr>
                 <td>${esc(m.judul)}</td>
-                <td><span class="status-badge muted">${(m.mimeType || "").includes("pdf") ? "PDF" : "PPT"}</span></td>
+                <td><span class="status-badge muted">${isPdf ? "PDF" : "PPT"}</span></td>
                 <td>
-                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.driveFileId}" data-judul="${esc(m.judul)}">Pratinjau</button>
-                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}" data-driveid="${m.driveFileId}">Hapus</button>
+                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-url="${encodeURIComponent(m.downloadURL)}" data-type="${isPdf ? 'pdf' : 'ppt'}" data-judul="${esc(m.judul)}">Pratinjau</button>
+                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}" data-path="${m.storagePath || ''}">Hapus</button>
                 </td>
               </tr>
-            `).join("")}
+            `}).join("")}
           </tbody>
         </table>
       </div>
@@ -1220,24 +1168,34 @@ async function muatMateri() {
 el("materiListContainer").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
+  
   if (btn.dataset.action === "preview-materi") {
+    const rawUrl = decodeURIComponent(btn.dataset.url);
+    const isPdf = btn.dataset.type === 'pdf';
+    
+    // Viewer embed PDF langsung atau PowerPoint via Google Docs Viewer
+    const embedUrl = isPdf 
+      ? rawUrl 
+      : `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=true`;
+
     openModal(`
       <h3>${esc(btn.dataset.judul)}</h3>
-      <iframe src="https://drive.google.com/file/d/${btn.dataset.id}/preview" style="width:100%; height:60vh; border:none; border-radius:8px;" allow="autoplay"></iframe>
-      <p style="margin-top:10px;"><a href="https://drive.google.com/file/d/${btn.dataset.id}/view" target="_blank" rel="noopener">Buka di tab baru / layar penuh</a></p>
+      <iframe src="${embedUrl}" style="width:100%; height:65vh; border:none; border-radius:8px;"></iframe>
+      <p style="margin-top:10px;"><a href="${rawUrl}" target="_blank" rel="noopener" download>Unduh File Asli</a></p>
     `, true);
   }
+
   if (btn.dataset.action === "hapus-materi") {
-    if (!confirm("Hapus materi ini? File di Google Drive juga akan dihapus.")) return;
+    if (!confirm("Hapus materi ini? Berkas di penyimpanan juga akan dihapus.")) return;
     showLoading(true);
     try {
-      if (driveAccessToken) {
-        await fetch("https://www.googleapis.com/drive/v3/files/" + btn.dataset.driveid, {
-          method: "DELETE",
-          headers: { Authorization: "Bearer " + driveAccessToken }
-        });
+      if (btn.dataset.path) {
+        const fileRef = ref(storage, btn.dataset.path);
+        await deleteObject(fileRef);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.warn("File fisik tidak ditemukan atau sudah terhapus:", err); 
+    }
     await deleteDoc(doc(materiCol(), btn.dataset.docid));
     showLoading(false);
     muatMateri();
