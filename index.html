@@ -346,9 +346,9 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
       <div class="card">
        <div class="card-header">
         <h3>Materi Pembelajaran</h3>
-        <span class="status-badge success">Firebase Storage Aktif</span>
+        <span class="status-badge success">Cloudinary Storage Aktif</span>
        </div>
-       <p class="hint">Unggah berkas presentasi (PDF atau PPT) langsung ke sistem. Berkas bisa langsung dipratinjau dan dipresentasikan di kelas.</p>
+       <p class="hint">Unggah berkas presentasi (PDF atau PPT) langsung ke server. Bebas biaya tanpa perlu upgrade Firebase ke Blaze.</p>
 
        <div class="form-row" style="margin-top:15px;">
         <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" placeholder="Contoh: Fisika"></div>
@@ -399,9 +399,6 @@ import {
   getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
   getDocs, getDoc, query, orderBy, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import {
-  getStorage, ref, uploadBytes, getDownloadURL, deleteObject
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAofW28SgnD-ENyqcmJzsjqB-jyfO8HiME",
@@ -413,10 +410,13 @@ const firebaseConfig = {
   measurementId: "G-29KTTP4P5W"
 };
 
+// Pengaturan Cloudinary Gratis
+const CLOUD_NAME = "di6fkvi5"; 
+const UPLOAD_PRESET = "di6fkvi5"; 
+
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
-const storage = getStorage(fbApp);
 const provider = new GoogleAuthProvider();
    
 let uid = null;
@@ -1080,7 +1080,7 @@ el("btnTambahCatatan").addEventListener("click", async () => {
   muatCatatan(siswaId);
 });
 
-// --- ALUR SIMPEL UPLOAD MATERI (FIREBASE STORAGE) ---
+// --- ALUR SIMPEL UPLOAD MATERI (CLOUDINARY) ---
 
 el("btnUploadMateri").addEventListener("click", async () => {
   const mapel = el("materiMapel").value.trim();
@@ -1093,21 +1093,26 @@ el("btnUploadMateri").addEventListener("click", async () => {
   }
 
   showLoading(true);
-  el("materiStatus").textContent = "Mengunggah berkas ke Firebase Storage...";
+  el("materiStatus").textContent = "Mengunggah berkas ke Cloudinary...";
 
   try {
-    const storagePath = `materi/${uid}/${Date.now()}_${file.name}`;
-    const fileRef = ref(storage, storagePath);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
 
-    await uploadBytes(fileRef, file);
-    const downloadURL = await getDownloadURL(fileRef);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error("Gagal mengunggah file ke Cloudinary.");
+    const data = await res.json();
 
     await addDoc(materiCol(), {
       mapel,
       subMateri: sub,
       judul,
-      downloadURL,
-      storagePath,
+      downloadURL: data.secure_url,
       mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.ms-powerpoint'),
       dibuat: new Date().toISOString()
     });
@@ -1154,7 +1159,7 @@ async function muatMateri() {
                 <td><span class="status-badge muted">${isPdf ? "PDF" : "PPT"}</span></td>
                 <td>
                   <button class="btn btn-sm btn-outline" data-action="preview-materi" data-url="${encodeURIComponent(m.downloadURL)}" data-type="${isPdf ? 'pdf' : 'ppt'}" data-judul="${esc(m.judul)}">Pratinjau</button>
-                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}" data-path="${m.storagePath || ''}">Hapus</button>
+                  <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}">Hapus</button>
                 </td>
               </tr>
             `}).join("")}
@@ -1173,7 +1178,6 @@ el("materiListContainer").addEventListener("click", async (e) => {
     const rawUrl = decodeURIComponent(btn.dataset.url);
     const isPdf = btn.dataset.type === 'pdf';
     
-    // Viewer embed PDF langsung atau PowerPoint via Google Docs Viewer
     const embedUrl = isPdf 
       ? rawUrl 
       : `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=true`;
@@ -1186,16 +1190,8 @@ el("materiListContainer").addEventListener("click", async (e) => {
   }
 
   if (btn.dataset.action === "hapus-materi") {
-    if (!confirm("Hapus materi ini? Berkas di penyimpanan juga akan dihapus.")) return;
+    if (!confirm("Hapus materi ini?")) return;
     showLoading(true);
-    try {
-      if (btn.dataset.path) {
-        const fileRef = ref(storage, btn.dataset.path);
-        await deleteObject(fileRef);
-      }
-    } catch (err) { 
-      console.warn("File fisik tidak ditemukan atau sudah terhapus:", err); 
-    }
     await deleteDoc(doc(materiCol(), btn.dataset.docid));
     showLoading(false);
     muatMateri();
