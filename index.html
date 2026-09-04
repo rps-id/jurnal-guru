@@ -135,7 +135,16 @@ select.status-dispen { background: #dbeafe; color: #1e40af; font-weight: 600; bo
 select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; border-color: #fecaca; }
 
 .materi-group { margin-bottom: 16px; }
-.materi-group-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+.materi-group-title { font-weight: 600; font-size: 0.88rem; margin: 14px 0 6px; }
+.materi-breadcrumb { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; }
+.materi-breadcrumb button { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.82rem; font-weight: 600; padding: 0; }
+.materi-breadcrumb button:hover { text-decoration: underline; }
+.materi-breadcrumb .sep { margin: 0 6px; color: #cbd5e1; }
+.materi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.materi-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: left; cursor: pointer; }
+.materi-card:hover { border-color: var(--primary); background: #f0f9ff; }
+.materi-card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; word-break: break-word; }
+.materi-card-count { font-size: 0.78rem; color: var(--text-muted); }
 
 @media (max-width: 780px) {
   .app-container { margin: 0; min-height: 100vh; border-radius: 0; }
@@ -345,25 +354,36 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
      <section id="page-materi" class="page-panel">
       <div class="card">
        <div class="card-header">
-        <h3>Materi Pembelajaran</h3>
+        <h3>Tambah Materi</h3>
         <span class="status-badge success">Cloudinary Storage Aktif</span>
        </div>
-       <p class="hint">Unggah berkas presentasi (PDF atau PPT) langsung ke server. Bebas biaya tanpa perlu upgrade Firebase ke Blaze.</p>
+       <p class="hint">Materi dikelompokkan seperti perpustakaan: Mata Pelajaran &gt; Bab &gt; Sub Bab. Bisa upload berkas PDF/PPT ke Cloudinary, atau cukup tempel link (Google Drive, Canva, Google Slides, dsb) yang bisa langsung dipratinjau tanpa perlu diunduh.</p>
 
        <div class="form-row" style="margin-top:15px;">
-        <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" placeholder="Contoh: Fisika"></div>
-        <div class="form-group"><label>Sub Materi</label><input type="text" id="materiSubMateri" placeholder="Contoh: Hukum Newton"></div>
+        <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" list="daftarMapel" placeholder="Contoh: Fisika"><datalist id="daftarMapel"></datalist></div>
+        <div class="form-group"><label>Bab</label><input type="text" id="materiBab" list="daftarBab" placeholder="Contoh: Bab 2 - Gerak Lurus"><datalist id="daftarBab"></datalist></div>
+        <div class="form-group"><label>Sub Bab</label><input type="text" id="materiSubBab" placeholder="Contoh: GLB dan GLBB"></div>
        </div>
        <div class="form-row">
-        <div class="form-group" style="flex:2;"><label>Judul File</label><input type="text" id="materiJudul" placeholder="Contoh: Slide Hukum Newton I"></div>
-        <div class="form-group"><label>Berkas (PDF / PPT / PPTX)</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
+        <div class="form-group" style="flex:2;"><label>Judul</label><input type="text" id="materiJudul" placeholder="Contoh: Slide GLB dan GLBB"></div>
+        <div class="form-group"><label>Sumber Materi</label>
+         <select id="materiSumber">
+          <option value="upload">Upload Berkas (PDF/PPT)</option>
+          <option value="link">Tempel Link (Drive/Canva/lainnya)</option>
+         </select>
+        </div>
        </div>
-       <button type="button" class="btn btn-primary" id="btnUploadMateri">Upload Materi</button>
+       <div class="form-row">
+        <div class="form-group" id="materiUploadGroup"><label>Berkas</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
+        <div class="form-group" id="materiLinkGroup" style="display:none;"><label>URL Link</label><input type="text" id="materiLinkUrl" placeholder="https://drive.google.com/... atau https://www.canva.com/design/..."></div>
+       </div>
+       <button type="button" class="btn btn-primary" id="btnUploadMateri">Simpan Materi</button>
        <p id="materiStatus" class="status-text"></p>
       </div>
 
       <div class="card">
-       <div class="card-header"><h3>Daftar Materi</h3></div>
+       <div class="card-header"><h3>Perpustakaan Materi</h3></div>
+       <div id="materiBreadcrumb" class="materi-breadcrumb"></div>
        <div id="materiListContainer"><p class="hint">Belum ada materi.</p></div>
       </div>
      </section>
@@ -389,7 +409,7 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
    <div class="modal-box" id="modalBox"></div>
   </div>
   <div class="loading-overlay" id="loadingOverlay">Memuat...</div>
-  
+
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -411,14 +431,14 @@ const firebaseConfig = {
 };
 
 // Pengaturan Cloudinary Gratis
-const CLOUD_NAME = "di6fkvi5"; 
-const UPLOAD_PRESET = "di6fkvi5"; 
+const CLOUD_NAME = "di6fkvi5";
+const UPLOAD_PRESET = "di6fkvi5";
 
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
-   
+
 let uid = null;
 let kelasCache = [];
 let siswaCache = [];
@@ -426,6 +446,10 @@ let activeKelasId = null;
 let editingNilaiId = null;
 let tempImportSiswa = [];
 let activeSummaryStatus = null;
+
+let materiAll = [];
+let materiSelMapel = null;
+let materiSelBab = null;
 
 const JENIS_LABEL = { tugas: "Tugas", ulangan_harian: "Ulangan Harian", uts: "UTS", uas: "UAS" };
 const STATUS_LABEL = { hadir: "Hadir", sakit: "Sakit", izin: "Izin", dispen: "Dispen", alpa: "Alpa" };
@@ -1080,50 +1104,70 @@ el("btnTambahCatatan").addEventListener("click", async () => {
   muatCatatan(siswaId);
 });
 
-// --- ALUR SIMPEL UPLOAD MATERI (CLOUDINARY) ---
+// ================================================
+// MATERI - PERPUSTAKAAN (Mapel > Bab > Sub Bab)
+// Sumber: upload berkas ke Cloudinary, atau tempel link (Drive/Canva/dll)
+// ================================================
+
+el("materiSumber").addEventListener("change", () => {
+  const isLink = el("materiSumber").value === "link";
+  el("materiUploadGroup").style.display = isLink ? "none" : "block";
+  el("materiLinkGroup").style.display = isLink ? "block" : "none";
+});
 
 el("btnUploadMateri").addEventListener("click", async () => {
   const mapel = el("materiMapel").value.trim();
-  const sub = el("materiSubMateri").value.trim();
+  const bab = el("materiBab").value.trim();
+  const subBab = el("materiSubBab").value.trim();
   const judul = el("materiJudul").value.trim();
-  const file = el("fileMateri").files[0];
-  if (!mapel || !sub || !judul || !file) { 
-    el("materiStatus").textContent = "Lengkapi semua kolom dan pilih berkas."; 
-    return; 
+  const sumber = el("materiSumber").value;
+
+  if (!mapel || !bab || !judul) {
+    el("materiStatus").textContent = "Mata Pelajaran, Bab, dan Judul wajib diisi.";
+    return;
   }
 
   showLoading(true);
-  el("materiStatus").textContent = "Mengunggah berkas ke Cloudinary...";
-
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    let url = "";
+    let mimeType = "";
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-      method: "POST",
-      body: formData
-    });
-
-    if (!res.ok) throw new Error("Gagal mengunggah file ke Cloudinary.");
-    const data = await res.json();
+    if (sumber === "link") {
+      url = el("materiLinkUrl").value.trim();
+      if (!url) { showLoading(false); el("materiStatus").textContent = "Masukkan link materinya dulu."; return; }
+    } else {
+      const file = el("fileMateri").files[0];
+      if (!file) { showLoading(false); el("materiStatus").textContent = "Pilih berkas dulu."; return; }
+      el("materiStatus").textContent = "Mengunggah berkas ke Cloudinary...";
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("Gagal mengunggah file ke Cloudinary.");
+      const data = await res.json();
+      url = data.secure_url;
+      mimeType = file.type || (file.name.endsWith(".pdf") ? "application/pdf" : "application/vnd.ms-powerpoint");
+    }
 
     await addDoc(materiCol(), {
-      mapel,
-      subMateri: sub,
-      judul,
-      downloadURL: data.secure_url,
-      mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.ms-powerpoint'),
+      mapel, bab, subBab, judul, sumber, url, mimeType,
       dibuat: new Date().toISOString()
     });
 
     el("fileMateri").value = "";
+    el("materiLinkUrl").value = "";
     el("materiJudul").value = "";
-    el("materiStatus").textContent = "Materi berhasil diunggah.";
+    el("materiStatus").textContent = "Materi berhasil disimpan.";
+
+    materiSelMapel = mapel;
+    materiSelBab = bab;
     muatMateri();
   } catch (err) {
     console.error(err);
-    el("materiStatus").textContent = "Gagal mengunggah materi: " + err.message;
+    el("materiStatus").textContent = "Gagal menyimpan materi: " + err.message;
   }
   showLoading(false);
 });
@@ -1133,36 +1177,82 @@ async function muatMateri() {
   showLoading(true);
   const snap = await getDocs(query(materiCol(), orderBy("mapel")));
   showLoading(false);
-  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  materiAll = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  updateMateriDatalists();
+  renderMateriLibrary();
+}
+
+function updateMateriDatalists() {
+  const mapels = [...new Set(materiAll.map((m) => m.mapel))];
+  el("daftarMapel").innerHTML = mapels.map((m) => `<option value="${esc(m)}">`).join("");
+  const relevan = materiSelMapel ? materiAll.filter((m) => m.mapel === materiSelMapel) : materiAll;
+  const babs = [...new Set(relevan.map((m) => m.bab))];
+  el("daftarBab").innerHTML = babs.map((b) => `<option value="${esc(b)}">`).join("");
+}
+
+function renderMateriLibrary() {
   const container = el("materiListContainer");
-  if (list.length === 0) { container.innerHTML = '<p class="hint">Belum ada materi.</p>'; return; }
+  const breadcrumb = el("materiBreadcrumb");
 
-  const grouped = {};
-  list.forEach((m) => {
-    const key = m.mapel + "||" + m.subMateri;
-    if (!grouped[key]) grouped[key] = { mapel: m.mapel, sub: m.subMateri, items: [] };
-    grouped[key].items.push(m);
-  });
+  if (materiAll.length === 0) {
+    breadcrumb.innerHTML = "";
+    container.innerHTML = '<p class="hint">Belum ada materi.</p>';
+    return;
+  }
 
-  container.innerHTML = Object.values(grouped).map((g) => `
+  if (!materiSelMapel) {
+    breadcrumb.innerHTML = "";
+    const counts = {};
+    materiAll.forEach((m) => { counts[m.mapel] = (counts[m.mapel] || 0) + 1; });
+    container.innerHTML = '<div class="materi-grid">' + Object.entries(counts).map(([nama, count]) => `
+      <button type="button" class="materi-card" data-pilih-mapel="${esc(nama)}">
+        <p class="materi-card-title">${esc(nama)}</p>
+        <p class="materi-card-count">${count} materi</p>
+      </button>
+    `).join("") + "</div>";
+    return;
+  }
+
+  if (!materiSelBab) {
+    breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><strong>${esc(materiSelMapel)}</strong>`;
+    const items = materiAll.filter((m) => m.mapel === materiSelMapel);
+    const counts = {};
+    items.forEach((m) => { const key = m.bab || "(Tanpa Bab)"; counts[key] = (counts[key] || 0) + 1; });
+    container.innerHTML = '<div class="materi-grid">' + Object.entries(counts).map(([nama, count]) => `
+      <button type="button" class="materi-card" data-pilih-bab="${esc(nama)}">
+        <p class="materi-card-title">${esc(nama)}</p>
+        <p class="materi-card-count">${count} materi</p>
+      </button>
+    `).join("") + "</div>";
+    return;
+  }
+
+  breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><button type="button" data-breadcrumb="mapel">${esc(materiSelMapel)}</button><span class="sep">/</span><strong>${esc(materiSelBab)}</strong>`;
+  const items = materiAll.filter((m) => m.mapel === materiSelMapel && (m.bab || "(Tanpa Bab)") === materiSelBab);
+  const bySub = {};
+  items.forEach((m) => { const key = m.subBab || "(Tanpa Sub Bab)"; if (!bySub[key]) bySub[key] = []; bySub[key].push(m); });
+
+  container.innerHTML = Object.entries(bySub).map(([sub, list]) => `
     <div class="materi-group">
-      <p class="materi-group-title">${esc(g.mapel)} - ${esc(g.sub)}</p>
+      <p class="materi-group-title">${esc(sub)}</p>
       <div class="table-container">
         <table>
           <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
           <tbody>
-            ${g.items.map((m) => {
-              const isPdf = (m.mimeType || "").includes("pdf") || (m.downloadURL || "").toLowerCase().includes(".pdf");
+            ${list.map((m) => {
+              const isLink = m.sumber === "link";
+              const isPdf = !isLink && ((m.mimeType || "").includes("pdf") || (m.url || "").toLowerCase().includes(".pdf"));
+              const tipeLabel = isLink ? "Link" : (isPdf ? "PDF" : "PPT");
               return `
               <tr>
                 <td>${esc(m.judul)}</td>
-                <td><span class="status-badge muted">${isPdf ? "PDF" : "PPT"}</span></td>
+                <td><span class="status-badge muted">${tipeLabel}</span></td>
                 <td>
-                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-url="${encodeURIComponent(m.downloadURL)}" data-type="${isPdf ? 'pdf' : 'ppt'}" data-judul="${esc(m.judul)}">Pratinjau</button>
+                  <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.id}">Pratinjau</button>
                   <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}">Hapus</button>
                 </td>
-              </tr>
-            `}).join("")}
+              </tr>`;
+            }).join("")}
           </tbody>
         </table>
       </div>
@@ -1170,34 +1260,68 @@ async function muatMateri() {
   `).join("");
 }
 
-el("materiListContainer").addEventListener("click", async (e) => {
+el("materiListContainer").addEventListener("click", (e) => {
+  const mapelBtn = e.target.closest("[data-pilih-mapel]");
+  if (mapelBtn) {
+    materiSelMapel = mapelBtn.dataset.pilihMapel;
+    materiSelBab = null;
+    updateMateriDatalists();
+    renderMateriLibrary();
+    return;
+  }
+  const babBtn = e.target.closest("[data-pilih-bab]");
+  if (babBtn) {
+    materiSelBab = babBtn.dataset.pilihBab;
+    renderMateriLibrary();
+    return;
+  }
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
-  
   if (btn.dataset.action === "preview-materi") {
-    const rawUrl = decodeURIComponent(btn.dataset.url);
-    const isPdf = btn.dataset.type === 'pdf';
-    
-    const embedUrl = isPdf 
-      ? rawUrl 
-      : `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=true`;
-
+    const m = materiAll.find((x) => x.id === btn.dataset.id);
+    if (!m) return;
+    const embedUrl = buildEmbedUrl(m);
     openModal(`
-      <h3>${esc(btn.dataset.judul)}</h3>
+      <h3>${esc(m.judul)}</h3>
       <iframe src="${embedUrl}" style="width:100%; height:65vh; border:none; border-radius:8px;"></iframe>
-      <p style="margin-top:10px;"><a href="${rawUrl}" target="_blank" rel="noopener" download>Unduh File Asli</a></p>
+      <p style="margin-top:10px;"><a href="${esc(m.url)}" target="_blank" rel="noopener">Buka link asli / layar penuh</a></p>
     `, true);
   }
-
-  if (btn.dataset.action === "hapus-materi") {
-    if (!confirm("Hapus materi ini?")) return;
-    showLoading(true);
-    await deleteDoc(doc(materiCol(), btn.dataset.docid));
-    showLoading(false);
-    muatMateri();
-  }
+  if (btn.dataset.action === "hapus-materi") hapusMateri(btn.dataset.docid);
 });
 
+el("materiBreadcrumb").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-breadcrumb]");
+  if (!btn) return;
+  if (btn.dataset.breadcrumb === "root") { materiSelMapel = null; materiSelBab = null; }
+  if (btn.dataset.breadcrumb === "mapel") { materiSelBab = null; }
+  updateMateriDatalists();
+  renderMateriLibrary();
+});
+
+async function hapusMateri(docId) {
+  if (!confirm("Hapus materi ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(materiCol(), docId));
+  showLoading(false);
+  muatMateri();
+}
+
+function buildEmbedUrl(m) {
+  const url = m.url || "";
+  let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+  match = url.match(/docs\.google\.com\/(presentation|document|spreadsheets)\/d\/([^/]+)/);
+  if (match) return `https://docs.google.com/${match[1]}/d/${match[2]}/embed`;
+  if (url.includes("canva.com/design/")) {
+    return url.includes("?") ? url + "&embed" : url + "?embed";
+  }
+  return url;
+}
+
+// ================================================
+// REKAP / EXPORT EXCEL
+// ================================================
 async function fetchRekapKelas(kelasId) {
   const siswaSnap = await getDocs(query(siswaCol(kelasId), orderBy("nama")));
   const siswaList = siswaSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
