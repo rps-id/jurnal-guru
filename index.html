@@ -40,9 +40,10 @@ header h1 { font-size: 1.1rem; font-weight: 600; }
 .app-body { display: flex; flex: 1; }
 
 .sidebar { width: 220px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #e2e8f0; padding: 15px 10px; display: flex; flex-direction: column; gap: 5px; }
-.sidebar-btn { width: 100%; padding: 12px 15px; border: none; background: transparent; text-align: left; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; cursor: pointer; }
+.sidebar-btn { width: 100%; padding: 12px 15px; border: none; background: transparent; text-align: left; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
 .sidebar-btn:hover { background: #e0f2fe; color: var(--primary); }
 .sidebar-btn.active { background: var(--primary); color: white; font-weight: 600; }
+.sidebar-btn .menu-icon { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
 .sidebar-spacer { flex: 1; }
 
 .content { flex: 1; padding: 25px; overflow-y: auto; max-height: calc(100vh - 90px); }
@@ -176,7 +177,9 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
     <g id="icon-star"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></g>
     <g id="icon-tag"><path d="M17.707 9.293l-5.414-5.414A1 1 0 0011.586 3.5H5a2 2 0 00-2 2v6.586a1 1 0 00.293.707l5.414 5.414a1 1 0 001.414 0l7.586-7.586a1 1 0 000-1.414zM6 8a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></g>
     <g id="icon-chat"><path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"/></g>
-    <g id="icon-paperclip"><path d="M8 4a3 3 0 00-3 3v8a5 5 0 0010 0V7a1 1 0 112 0v8a7 7 0 11-14 0V7a5 5 0 0110 0v8a3 3 0 11-6 0V7a1 1 0 012 0v8a1 1 0 002 0V7a3 3 0 00-3-3z"/></g>
+    <g id="icon-chart"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></g>
+    <g id="icon-folder"><path d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></g>
+    <g id="icon-logout"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h5a1 1 0 100-2H4V5h4a1 1 0 100-2H3zm9.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H7a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></g>
   </svg>
 
   <div id="loginPage" class="login-page">
@@ -200,14 +203,35 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
    </header>
    <div class="app-body">
     <aside class="sidebar">
-     <button type="button" class="sidebar-btn active" data-page="page-kelas">Kelas &amp; Siswa</button>
-     <button type="button" class="sidebar-btn" data-page="page-absensi">Absensi</button>
-     <button type="button" class="sidebar-btn" data-page="page-nilai">Nilai</button>
-     <button type="button" class="sidebar-btn" data-page="page-catatan">Catatan</button>
-     <button type="button" class="sidebar-btn" data-page="page-materi">Materi</button>
-     <button type="button" class="sidebar-btn" data-page="page-rekap">Rekap</button>
+     <button type="button" class="sidebar-btn active" data-page="page-kelas">
+      <svg class="menu-icon"><use href="#icon-users"/></svg>
+      Kelas &amp; Siswa
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-absensi">
+      <svg class="menu-icon"><use href="#icon-check"/></svg>
+      Absensi
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-nilai">
+      <svg class="menu-icon"><use href="#icon-star"/></svg>
+      Nilai
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-catatan">
+      <svg class="menu-icon"><use href="#icon-chat"/></svg>
+      Catatan
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-materi">
+      <svg class="menu-icon"><use href="#icon-folder"/></svg>
+      Materi
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-rekap">
+      <svg class="menu-icon"><use href="#icon-chart"/></svg>
+      Rekap
+     </button>
      <div class="sidebar-spacer"></div>
-     <button type="button" class="btn btn-danger btn-sm" id="logoutBtn">Keluar</button>
+     <button type="button" class="btn btn-danger btn-sm" id="logoutBtn" style="justify-content: flex-start; gap: 8px;">
+      <svg class="menu-icon" style="width: 16px; height: 16px;"><use href="#icon-logout"/></svg>
+      Keluar
+     </button>
     </aside>
     <main class="content">
      <div class="kelas-aktif-bar">
@@ -902,7 +926,6 @@ function renderTabelAbsensiInput() {
     return;
   }
 
-  // Simpan pilihan status absensi yang sedang terpilih agar tidak hilang saat sorting
   const currentSelectVals = {};
   document.querySelectorAll("#tbodyAbsensi select[data-absensi-siswa]").forEach((sel) => {
     currentSelectVals[sel.dataset.absensiSiswa] = sel.value;
@@ -1551,7 +1574,6 @@ function renderMateriLibrary() {
     </div>
   `;
 
-  // Listener Re-bind khusus tabel materi dinamik
   const thMateriList = el("tableMateri")?.querySelectorAll("th.sortable[data-sort]");
   thMateriList?.forEach((th) => {
     th.addEventListener("click", () => {
