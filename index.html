@@ -1426,8 +1426,22 @@ async function hapusMateri(docId) {
 }
 
 function buildEmbedUrl(m) {
-  const url = m.url || "";
-  
+  let url = (m.url || "").trim();
+
+  // Handling Canva
+  if (url.includes("canva.com")) {
+    // Jika link menggunakan format /view, ubah ke /watch
+    if (url.includes("/view")) {
+      return url.replace("/view", "/watch");
+    }
+    // Jika link menggunakan ID desain Canva standar
+    const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)/);
+    if (canvaMatch) {
+      return `https://www.canva.com/design/${canvaMatch[1]}/watch`;
+    }
+    return url;
+  }
+
   // Handling Google Drive
   let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
@@ -1436,12 +1450,7 @@ function buildEmbedUrl(m) {
   match = url.match(/docs\.google\.com\/(presentation|document|spreadsheets)\/d\/([^/]+)/);
   if (match) return `https://docs.google.com/${match[1]}/d/${match[2]}/embed`;
 
-  // Handling Canva
-  if (url.includes("canva.com/design/")) {
-    return url.includes("?") ? url + "&embed" : url + "?embed";
-  }
-
-  // Handling file dari Cloudinary atau Direct Link (PDF / PPT / PPTX)
+  // Handling File Cloudinary / Direct Link (PDF / PPT / PPTX)
   const lower = url.toLowerCase();
   const isPdf = m.mimeType?.includes("pdf") || lower.endsWith(".pdf");
   const isPpt = m.mimeType?.includes("presentation") || m.mimeType?.includes("powerpoint") || lower.endsWith(".ppt") || lower.endsWith(".pptx");
