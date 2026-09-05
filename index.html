@@ -84,7 +84,13 @@ textarea { resize: vertical; }
 .preview-scroll { max-height: 200px; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
+th { background: #f8fafc; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+th.sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
+th.sortable:hover { background: #e0f2fe; color: var(--primary); }
+.th-content { display: inline-flex; align-items: center; gap: 6px; }
+.th-icon { width: 14px; height: 14px; fill: currentColor; opacity: 0.75; flex-shrink: 0; }
+.sort-indicator { font-size: 0.7rem; margin-left: 2px; color: var(--primary); }
+
 th.col-no, td.col-no { width: 42px; text-align: center; color: var(--text-muted); }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: #f8fafc; }
@@ -156,6 +162,23 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
 </style>
  </head>
  <body>
+  <!-- Helper SVG Icons Definitions -->
+  <svg style="display: none;">
+    <g id="icon-hashtag"><path d="M10 13a1 1 0 001-1V8a1 1 0 00-2 0v4a1 1 0 001 1zM6 13a1 1 0 001-1V8a1 1 0 00-2 0v4a1 1 0 001 1zM3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></g>
+    <g id="icon-user"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></g>
+    <g id="icon-book"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></g>
+    <g id="icon-users"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3.005 3.005 0 013.75-2.906z"/></g>
+    <g id="icon-cog"><path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"/></g>
+    <g id="icon-idcard"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM4.5 9a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zM13 14a1 1 0 01-1 1H8a1 1 0 01-1-1v-.28c0-1.12.86-2.06 1.98-2.15 1.02-.08 2.02-.08 3.04 0 1.12.09 1.98 1.03 1.98 2.15V14z"/></g>
+    <g id="icon-check"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></g>
+    <g id="icon-calendar"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/></g>
+    <g id="icon-file"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></g>
+    <g id="icon-star"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></g>
+    <g id="icon-tag"><path d="M17.707 9.293l-5.414-5.414A1 1 0 0011.586 3.5H5a2 2 0 00-2 2v6.586a1 1 0 00.293.707l5.414 5.414a1 1 0 001.414 0l7.586-7.586a1 1 0 000-1.414zM6 8a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></g>
+    <g id="icon-chat"><path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"/></g>
+    <g id="icon-paperclip"><path d="M8 4a3 3 0 00-3 3v8a5 5 0 0010 0V7a1 1 0 112 0v8a7 7 0 11-14 0V7a5 5 0 0110 0v8a3 3 0 11-6 0V7a1 1 0 012 0v8a1 1 0 002 0V7a3 3 0 00-3-3z"/></g>
+  </svg>
+
   <div id="loginPage" class="login-page">
    <div class="login-card">
     <p class="login-mark">Jurnal Guru</p>
@@ -198,8 +221,16 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <button type="button" class="btn btn-sm" id="btnTambahKelas">+ Tambah Kelas</button>
        </div>
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Nama Kelas</th><th>Mapel</th><th>Jumlah Siswa</th><th>Aksi</th></tr></thead>
+        <table id="tableKelas">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-book"/></svg>Nama Kelas<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="mapel"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Mapel<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="jumlahSiswa"><div class="th-content"><svg class="th-icon"><use href="#icon-users"/></svg>Jumlah Siswa<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodyKelas"><tr><td colspan="5" class="empty-row">Belum ada kelas.</td></tr></tbody>
         </table>
        </div>
@@ -217,7 +248,14 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <h4>Pratinjau Import Siswa</h4>
         <div class="table-container preview-scroll">
          <table id="tablePreviewSiswa">
-          <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Status</th></tr></thead>
+          <thead>
+           <tr>
+            <th class="col-no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-check"/></svg>Status</div></th>
+           </tr>
+          </thead>
           <tbody></tbody>
          </table>
         </div>
@@ -227,8 +265,15 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         </div>
        </div>
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Aksi</th></tr></thead>
+        <table id="tableSiswa">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodySiswa"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
@@ -261,8 +306,15 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        <div class="summary-detail" id="absensiSummaryDetail" hidden></div>
 
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th>Kehadiran</th></tr></thead>
+        <table id="tableAbsensi">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-check"/></svg>Kehadiran</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodyAbsensi"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
@@ -274,8 +326,20 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
       <div class="card">
        <div class="card-header"><h3>Riwayat Pertemuan</h3></div>
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Materi</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Dispen</th><th>Alpa</th><th>Aksi</th></tr></thead>
+        <table id="tableRiwayatAbsensi">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="materi"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Materi<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="hadir"><div class="th-content">Hadir<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="sakit"><div class="th-content">Sakit<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="izin"><div class="th-content">Izin<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="dispen"><div class="th-content">Dispen<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="alpa"><div class="th-content">Alpa<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodyRiwayatAbsensi"><tr><td colspan="9" class="empty-row">Belum ada data.</td></tr></tbody>
         </table>
        </div>
@@ -300,8 +364,15 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        <p class="hint">Template berisi Nama &amp; NIS siswa di kelas aktif secara otomatis - isi kolom Nilai lalu upload kembali. Lengkapi Jenis/Nama Penilaian/Tanggal di atas, lalu klik Simpan Nilai.</p>
 
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Nama</th><th>NIS</th><th style="width:120px;">Nilai</th></tr></thead>
+        <table id="tableNilaiInput">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th style="width:120px;"><div class="th-content"><svg class="th-icon"><use href="#icon-star"/></svg>Nilai</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodyNilaiInput"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
         </table>
        </div>
@@ -317,8 +388,17 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <select id="filterRiwayatJenis"> <option value="">-- Semua jenis --</option> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
        </div>
        <div class="table-container">
-        <table>
-         <thead><tr><th class="col-no">No</th><th>Nama Penilaian</th><th>Jenis</th><th>Tanggal</th><th>Rata-rata</th><th>Aksi</th></tr></thead>
+        <table id="tableRiwayatNilai">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Nama Penilaian<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="jenis"><div class="th-content"><svg class="th-icon"><use href="#icon-tag"/></svg>Jenis<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="avg"><div class="th-content"><svg class="th-icon"><use href="#icon-star"/></svg>Rata-rata<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
          <tbody id="tbodyRiwayatNilai"><tr><td colspan="6" class="empty-row">Belum ada data.</td></tr></tbody>
         </table>
        </div>
@@ -339,8 +419,15 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
         <button type="button" class="btn btn-primary btn-sm" id="btnTambahCatatan">Tambah Catatan</button>
         <p id="catatanStatus" class="status-text"></p>
         <div class="table-container" style="margin-top:14px;">
-         <table>
-          <thead><tr><th class="col-no">No</th><th>Tanggal</th><th>Catatan</th><th>Aksi</th></tr></thead>
+         <table id="tableCatatan">
+          <thead>
+           <tr>
+            <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+            <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+            <th class="sortable" data-sort="isi"><div class="th-content"><svg class="th-icon"><use href="#icon-chat"/></svg>Catatan<span class="sort-indicator">↕</span></div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+           </tr>
+          </thead>
           <tbody id="tbodyCatatan"><tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr></tbody>
          </table>
         </div>
@@ -452,6 +539,22 @@ let materiAll = [];
 let materiSelMapel = null;
 let materiSelBab = null;
 
+let riwayatAbsensiCache = [];
+let riwayatNilaiCache = [];
+let catatanCache = [];
+
+// State Sort per tabel
+const sortState = {
+  tableKelas: { key: null, asc: true },
+  tableSiswa: { key: null, asc: true },
+  tableAbsensi: { key: null, asc: true },
+  tableRiwayatAbsensi: { key: null, asc: true },
+  tableNilaiInput: { key: null, asc: true },
+  tableRiwayatNilai: { key: null, asc: true },
+  tableCatatan: { key: null, asc: true },
+  tableMateri: { key: null, asc: true }
+};
+
 const JENIS_LABEL = { tugas: "Tugas", ulangan_harian: "Ulangan Harian", uts: "UTS", uas: "UAS" };
 const STATUS_LABEL = { hadir: "Hadir", sakit: "Sakit", izin: "Izin", dispen: "Dispen", alpa: "Alpa" };
 const KODE_KEHADIRAN = { H: "hadir", S: "sakit", I: "izin", D: "dispen", A: "alpa" };
@@ -463,6 +566,66 @@ function todayStr() { return new Date().toISOString().slice(0, 10); }
 function openModal(html, wide) { el("modalBox").className = "modal-box" + (wide ? " wide" : ""); el("modalBox").innerHTML = html; el("modalOverlay").classList.add("open"); }
 function closeModal() { el("modalOverlay").classList.remove("open"); }
 el("modalOverlay").addEventListener("click", (e) => { if (e.target.id === "modalOverlay") closeModal(); });
+
+// Helper generic sort untuk data array
+function sortDataArray(arr, key, asc, getVal) {
+  if (!key) return arr;
+  return [...arr].sort((a, b) => {
+    let valA = getVal ? getVal(a, key) : a[key];
+    let valB = getVal ? getVal(b, key) : b[key];
+    if (valA == null) valA = "";
+    if (valB == null) valB = "";
+    if (typeof valA === "number" && typeof valB === "number") {
+      return asc ? valA - valB : valB - valA;
+    }
+    return asc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+  });
+}
+
+function updateSortIndicators(tableId, currentKey, asc) {
+  const table = el(tableId);
+  if (!table) return;
+  table.querySelectorAll("th.sortable").forEach((th) => {
+    const ind = th.querySelector(".sort-indicator");
+    if (!ind) return;
+    if (th.dataset.sort === currentKey) {
+      ind.textContent = asc ? " ↑" : " ↓";
+    } else {
+      ind.textContent = " ↕";
+    }
+  });
+}
+
+function setupTableSortListeners() {
+  document.querySelectorAll("th.sortable[data-sort]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const table = th.closest("table");
+      if (!table) return;
+      const tableId = table.id;
+      const key = th.dataset.sort;
+      if (!tableId || !sortState[tableId]) return;
+
+      if (sortState[tableId].key === key) {
+        sortState[tableId].asc = !sortState[tableId].asc;
+      } else {
+        sortState[tableId].key = key;
+        sortState[tableId].asc = true;
+      }
+
+      updateSortIndicators(tableId, sortState[tableId].key, sortState[tableId].asc);
+
+      // Re-render tabel yang bersangkutan
+      if (tableId === "tableKelas") renderTabelKelas();
+      if (tableId === "tableSiswa") renderTabelSiswa();
+      if (tableId === "tableAbsensi") renderTabelAbsensiInput();
+      if (tableId === "tableRiwayatAbsensi") renderTabelRiwayatAbsensiHTML();
+      if (tableId === "tableNilaiInput") renderTabelNilaiInput();
+      if (tableId === "tableRiwayatNilai") renderTabelRiwayatNilaiHTML();
+      if (tableId === "tableCatatan") renderTabelCatatanHTML();
+      if (tableId === "tableMateri") renderMateriLibrary();
+    });
+  });
+}
 
 el("loginBtn").addEventListener("click", () => {
   el("loginError").textContent = "";
@@ -480,6 +643,7 @@ onAuthStateChanged(auth, (user) => {
     el("appPage").style.display = "flex";
     el("userEmail").textContent = user.email;
     uid = user.uid;
+    setupTableSortListeners();
     muatKelas();
     muatMateri();
   } else {
@@ -538,9 +702,16 @@ function renderTabelKelas() {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Belum ada kelas. Klik "+ Tambah Kelas" untuk mulai.</td></tr>';
     return;
   }
-  tbody.innerHTML = kelasCache.map((k, i) => `
+
+  const { key, asc } = sortState.tableKelas;
+  let list = kelasCache.map((k, idx) => ({ ...k, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((k, i) => `
     <tr>
-      <td class="col-no">${i + 1}</td>
+      <td class="col-no">${k.originalNo}</td>
       <td><strong>${esc(k.nama)}</strong></td>
       <td>${esc(k.mapel || "-")}</td>
       <td>${k.jumlahSiswa ?? 0}</td>
@@ -648,9 +819,16 @@ function renderTabelSiswa() {
   const tbody = el("tbodySiswa");
   if (!activeKelasId) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>'; return; }
   if (siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada siswa. Upload Excel atau unduh template di atas.</td></tr>'; return; }
-  tbody.innerHTML = siswaCache.map((s, i) => `
+
+  const { key, asc } = sortState.tableSiswa;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s, i) => `
     <tr>
-      <td class="col-no">${i + 1}</td>
+      <td class="col-no">${s.originalNo}</td>
       <td>${esc(s.nama)}</td>
       <td>${esc(s.nis || "-")}</td>
       <td><button class="btn btn-sm btn-danger" data-action="hapus-siswa" data-id="${s.id}">Hapus</button></td>
@@ -723,22 +901,38 @@ function renderTabelAbsensiInput() {
     updateAbsensiSummary();
     return;
   }
-  tbody.innerHTML = siswaCache.map((s, i) => `
+
+  // Simpan pilihan status absensi yang sedang terpilih agar tidak hilang saat sorting
+  const currentSelectVals = {};
+  document.querySelectorAll("#tbodyAbsensi select[data-absensi-siswa]").forEach((sel) => {
+    currentSelectVals[sel.dataset.absensiSiswa] = sel.value;
+  });
+
+  const { key, asc } = sortState.tableAbsensi;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s, i) => {
+    const val = currentSelectVals[s.id] || "hadir";
+    return `
     <tr>
-      <td class="col-no">${i + 1}</td>
+      <td class="col-no">${s.originalNo}</td>
       <td>${esc(s.nama)}</td>
       <td>${esc(s.nis || "-")}</td>
       <td>
-        <select class="status-hadir" data-absensi-siswa="${s.id}" data-nama="${esc(s.nama)}">
-          <option value="hadir">Hadir</option>
-          <option value="sakit">Sakit</option>
-          <option value="izin">Izin</option>
-          <option value="dispen">Dispen</option>
-          <option value="alpa">Alpa</option>
+        <select class="status-${val}" data-absensi-siswa="${s.id}" data-nama="${esc(s.nama)}">
+          <option value="hadir" ${val === 'hadir' ? 'selected' : ''}>Hadir</option>
+          <option value="sakit" ${val === 'sakit' ? 'selected' : ''}>Sakit</option>
+          <option value="izin" ${val === 'izin' ? 'selected' : ''}>Izin</option>
+          <option value="dispen" ${val === 'dispen' ? 'selected' : ''}>Dispen</option>
+          <option value="alpa" ${val === 'alpa' ? 'selected' : ''}>Alpa</option>
         </select>
       </td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
   updateAbsensiSummary();
 }
 
@@ -870,30 +1064,50 @@ async function muatRiwayatAbsensi() {
   showLoading(true);
   const snap = await getDocs(query(pertemuanCol(activeKelasId), orderBy("tanggal", "desc")));
   showLoading(false);
-  const tbody = el("tbodyRiwayatAbsensi");
-  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Belum ada data absensi.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map((d, i) => {
+
+  riwayatAbsensiCache = snap.docs.map((d, idx) => {
     const data = d.data();
     const rekap = { hadir: 0, sakit: 0, izin: 0, dispen: 0, alpa: 0 };
     Object.values(data.absensi || {}).forEach((v) => { if (rekap[v] !== undefined) rekap[v]++; });
-    return `
-      <tr>
-        <td class="col-no">${i + 1}</td>
-        <td>${data.tanggal}</td>
-        <td>${esc(data.materi || "-")}</td>
-        <td>${rekap.hadir}</td>
-        <td>${rekap.sakit}</td>
-        <td>${rekap.izin}</td>
-        <td>${rekap.dispen}</td>
-        <td>${rekap.alpa}</td>
-        <td>
-          <button class="btn btn-sm btn-outline" data-action="buka-absensi" data-tgl="${data.tanggal}">Buka</button>
-          <button class="btn btn-sm btn-danger" data-action="hapus-absensi" data-tgl="${data.tanggal}">Hapus</button>
-        </td>
-      </tr>
-    `;
-  }).join("");
+    return {
+      originalNo: idx + 1,
+      tanggal: data.tanggal,
+      materi: data.materi || "-",
+      ...rekap
+    };
+  });
+
+  renderTabelRiwayatAbsensiHTML();
 }
+
+function renderTabelRiwayatAbsensiHTML() {
+  const tbody = el("tbodyRiwayatAbsensi");
+  if (riwayatAbsensiCache.length === 0) { tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Belum ada data absensi.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableRiwayatAbsensi;
+  let list = riwayatAbsensiCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((item) => `
+    <tr>
+      <td class="col-no">${item.originalNo}</td>
+      <td>${item.tanggal}</td>
+      <td>${esc(item.materi)}</td>
+      <td>${item.hadir}</td>
+      <td>${item.sakit}</td>
+      <td>${item.izin}</td>
+      <td>${item.dispen}</td>
+      <td>${item.alpa}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="buka-absensi" data-tgl="${item.tanggal}">Buka</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-absensi" data-tgl="${item.tanggal}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
 el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
@@ -916,14 +1130,29 @@ el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
 function renderTabelNilaiInput() {
   const tbody = el("tbodyNilaiInput");
   if (!activeKelasId || siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>'; return; }
-  tbody.innerHTML = siswaCache.map((s, i) => `
+
+  const currentNilaiVals = {};
+  document.querySelectorAll("#tbodyNilaiInput input[data-nilai-siswa]").forEach((inp) => {
+    currentNilaiVals[inp.dataset.nilaiSiswa] = inp.value;
+  });
+
+  const { key, asc } = sortState.tableNilaiInput;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s) => {
+    const val = currentNilaiVals[s.id] ?? "";
+    return `
     <tr>
-      <td class="col-no">${i + 1}</td>
+      <td class="col-no">${s.originalNo}</td>
       <td>${esc(s.nama)}</td>
       <td>${esc(s.nis || "-")}</td>
-      <td><input type="number" min="0" max="100" data-nilai-siswa="${s.id}" placeholder="-"></td>
+      <td><input type="number" min="0" max="100" data-nilai-siswa="${s.id}" value="${val}" placeholder="-"></td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
 }
 
 el("btnSimpanNilai").addEventListener("click", async () => {
@@ -999,34 +1228,55 @@ async function muatRiwayatNilai() {
   const snap = await getDocs(query(nilaiCol(activeKelasId), orderBy("tanggal", "desc")));
   showLoading(false);
   const filterJenis = el("filterRiwayatJenis").value;
-  let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  if (filterJenis) list = list.filter((n) => n.jenis === filterJenis);
-  const tbody = el("tbodyRiwayatNilai");
-  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Belum ada data nilai.</td></tr>'; return; }
-  tbody.innerHTML = list.map((n, i) => {
+  let list = snap.docs.map((d, idx) => {
+    const n = d.data();
     const nilaiValues = Object.values(n.nilai || {});
-    const avg = nilaiValues.length ? (nilaiValues.reduce((a, b) => a + b, 0) / nilaiValues.length).toFixed(1) : "-";
-    return `
-      <tr>
-        <td class="col-no">${i + 1}</td>
-        <td>${esc(n.nama)}</td>
-        <td><span class="status-badge muted">${JENIS_LABEL[n.jenis] || n.jenis}</span></td>
-        <td>${n.tanggal}</td>
-        <td>${avg}</td>
-        <td>
-          <button class="btn btn-sm btn-outline" data-action="edit-nilai" data-id="${n.id}">Edit</button>
-          <button class="btn btn-sm btn-danger" data-action="hapus-nilai" data-id="${n.id}">Hapus</button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-  el("tbodyRiwayatNilai")._listCache = list;
+    const avgNum = nilaiValues.length ? (nilaiValues.reduce((a, b) => a + b, 0) / nilaiValues.length) : null;
+    return {
+      id: d.id,
+      originalNo: idx + 1,
+      nama: n.nama,
+      jenis: n.jenis,
+      tanggal: n.tanggal,
+      nilai: n.nilai,
+      avg: avgNum != null ? Number(avgNum.toFixed(1)) : -1
+    };
+  });
+
+  if (filterJenis) list = list.filter((n) => n.jenis === filterJenis);
+  riwayatNilaiCache = list;
+  renderTabelRiwayatNilaiHTML();
 }
+
+function renderTabelRiwayatNilaiHTML() {
+  const tbody = el("tbodyRiwayatNilai");
+  if (riwayatNilaiCache.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Belum ada data nilai.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableRiwayatNilai;
+  let list = riwayatNilaiCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((n) => `
+    <tr>
+      <td class="col-no">${n.originalNo}</td>
+      <td>${esc(n.nama)}</td>
+      <td><span class="status-badge muted">${JENIS_LABEL[n.jenis] || n.jenis}</span></td>
+      <td>${n.tanggal}</td>
+      <td>${n.avg >= 0 ? n.avg.toFixed(1) : "-"}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="edit-nilai" data-id="${n.id}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-nilai" data-id="${n.id}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
 el("tbodyRiwayatNilai").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
-  const list = el("tbodyRiwayatNilai")._listCache || [];
-  if (btn.dataset.action === "edit-nilai") editNilai(btn.dataset.id, list);
+  if (btn.dataset.action === "edit-nilai") editNilai(btn.dataset.id, riwayatNilaiCache);
   if (btn.dataset.action === "hapus-nilai") hapusNilai(btn.dataset.id);
 });
 
@@ -1073,13 +1323,36 @@ async function muatCatatan(siswaId) {
   showLoading(true);
   const snap = await getDocs(query(catatanCol(activeKelasId, siswaId), orderBy("tanggal", "desc")));
   showLoading(false);
-  const tbody = el("tbodyCatatan");
-  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map((d, i) => {
-    const data = d.data();
-    return `<tr><td class="col-no">${i + 1}</td><td>${data.tanggal}</td><td>${esc(data.isi)}</td><td><button class="btn btn-sm btn-danger" data-action="hapus-catatan" data-id="${d.id}">Hapus</button></td></tr>`;
-  }).join("");
+
+  catatanCache = snap.docs.map((d, idx) => ({
+    id: d.id,
+    originalNo: idx + 1,
+    ...d.data()
+  }));
+
+  renderTabelCatatanHTML();
 }
+
+function renderTabelCatatanHTML() {
+  const tbody = el("tbodyCatatan");
+  if (catatanCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableCatatan;
+  let list = catatanCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((data) => `
+    <tr>
+      <td class="col-no">${data.originalNo}</td>
+      <td>${data.tanggal}</td>
+      <td>${esc(data.isi)}</td>
+      <td><button class="btn btn-sm btn-danger" data-action="hapus-catatan" data-id="${data.id}">Hapus</button></td>
+    </tr>
+  `).join("");
+}
+
 el("tbodyCatatan").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-action='hapus-catatan']");
   if (!btn) return;
@@ -1233,12 +1506,30 @@ function renderMateriLibrary() {
   }
 
   breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><button type="button" data-breadcrumb="mapel">${esc(materiSelMapel)}</button><span class="sep">/</span><strong>${esc(materiSelBab)}</strong>`;
-  const items = materiAll.filter((m) => m.mapel === materiSelMapel && (m.bab || "(Tanpa Bab)") === materiSelBab);
+  let items = materiAll.filter((m) => m.mapel === materiSelMapel && (m.bab || "(Tanpa Bab)") === materiSelBab);
+
+  const { key, asc } = sortState.tableMateri;
+  if (key) {
+    items = sortDataArray(items, key, asc, (item, k) => {
+      if (k === 'tipe') {
+        const isLink = item.sumber === "link";
+        const isPdf = !isLink && ((item.mimeType || "").includes("pdf") || (item.url || "").toLowerCase().includes(".pdf"));
+        return isLink ? "Link" : (isPdf ? "PDF" : "PPT");
+      }
+      return item[k];
+    });
+  }
 
   container.innerHTML = `
     <div class="table-container">
-      <table>
-        <thead><tr><th>Judul</th><th>Tipe</th><th>Aksi</th></tr></thead>
+      <table id="tableMateri">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="judul"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Judul<span class="sort-indicator">${key === 'judul' ? (asc ? ' ↑' : ' ↓') : ' ↕'}</span></div></th>
+            <th class="sortable" data-sort="tipe"><div class="th-content"><svg class="th-icon"><use href="#icon-tag"/></svg>Tipe<span class="sort-indicator">${key === 'tipe' ? (asc ? ' ↑' : ' ↓') : ' ↕'}</span></div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+        </thead>
         <tbody>
           ${items.map((m) => {
             const isLink = m.sumber === "link";
@@ -1259,6 +1550,21 @@ function renderMateriLibrary() {
       </table>
     </div>
   `;
+
+  // Listener Re-bind khusus tabel materi dinamik
+  const thMateriList = el("tableMateri")?.querySelectorAll("th.sortable[data-sort]");
+  thMateriList?.forEach((th) => {
+    th.addEventListener("click", () => {
+      const k = th.dataset.sort;
+      if (sortState.tableMateri.key === k) {
+        sortState.tableMateri.asc = !sortState.tableMateri.asc;
+      } else {
+        sortState.tableMateri.key = k;
+        sortState.tableMateri.asc = true;
+      }
+      renderMateriLibrary();
+    });
+  });
 }
 
 el("materiListContainer").addEventListener("click", (e) => {
@@ -1304,14 +1610,11 @@ el("materiListContainer").addEventListener("click", (e) => {
       const req = iframeEl.requestFullscreen || iframeEl.webkitRequestFullscreen || iframeEl.msRequestFullscreen;
       if (req) {
         const result = req.call(iframeEl);
-        if (result && result.catch) result.catch(() => { /* browser blocked auto-fullscreen; user can click the button */ });
+        if (result && result.catch) result.catch(() => { /* browser blocked auto-fullscreen */ });
       }
     };
 
-    // Langsung masuk mode presentasi (fullscreen) begitu tombol Pratinjau/Presentasi diklik,
-    // selama tidak memakai link Canva pendek yang tidak bisa dimuat.
     if (!isShortCanva) enterFullscreen();
-
     fullscreenBtn.addEventListener("click", enterFullscreen);
   }
 
@@ -1460,19 +1763,14 @@ function buildEmbedUrl(m) {
   if (url.includes("canva.com")) {
     const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)/);
     if (canvaMatch) {
-      // Format embed resmi Canva: tambahkan ?embed di belakang /view (BUKAN /watch)
       return `https://www.canva.com/design/${canvaMatch[1]}/${canvaMatch[2]}/view?embed`;
     }
-    // Link tanpa bagian "secret" (jarang terjadi) - tetap coba tambahkan ?embed
     if (url.includes("/view")) {
       return url.split("?")[0] + "?embed";
     }
     return url;
   }
 
-  // Link pendek canva.link tidak bisa diprediksi ID desainnya dan biasanya
-  // diblokir kebijakan frame-ancestors Canva saat di-redirect - dibiarkan apa adanya
-  // (form materi & pesan status sudah mencegah link ini disimpan sejak awal).
   if (url.includes("canva.link")) {
     return url;
   }
