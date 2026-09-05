@@ -372,7 +372,11 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        </div>
        <div class="form-row">
         <div class="form-group" id="materiUploadGroup"><label>Berkas</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
-        <div class="form-group" id="materiLinkGroup" style="display:none;"><label>URL Link</label><input type="text" id="materiLinkUrl" placeholder="https://drive.google.com/... atau https://www.canva.com/design/..."></div>
+        <div class="form-group" id="materiLinkGroup" style="display:none;">
+         <label>URL Link</label>
+         <input type="text" id="materiLinkUrl" placeholder="https://www.canva.com/design/.../view atau link Google Drive/Slides">
+         <p class="hint" style="margin-bottom:0;">Khusus Canva: gunakan link <b>penuh</b> dari Share &gt; Copy link (formatnya <code>canva.com/design/...../view</code>). Link pendek <code>canva.link/...</code> tidak bisa dipakai untuk pratinjau/presentasi di dalam aplikasi ini.</p>
+        </div>
        </div>
        <button type="button" class="btn btn-primary" id="btnUploadMateri">Simpan Materi</button>
        <p id="materiStatus" class="status-text"></p>
@@ -1131,6 +1135,11 @@ el("btnUploadMateri").addEventListener("click", async () => {
     if (sumber === "link") {
       url = el("materiLinkUrl").value.trim();
       if (!url) { showLoading(false); el("materiStatus").textContent = "Masukkan link materinya dulu."; return; }
+      if (url.includes("canva.link")) {
+        showLoading(false);
+        el("materiStatus").textContent = "Link Canva pendek (canva.link) tidak bisa dipakai untuk pratinjau/presentasi. Gunakan link penuh dari Share > Copy link (format canva.com/design/.../view).";
+        return;
+      }
     } else {
       const file = el("fileMateri").files[0];
       if (!file) { showLoading(false); el("materiStatus").textContent = "Pilih berkas dulu."; return; }
@@ -1274,23 +1283,36 @@ el("materiListContainer").addEventListener("click", (e) => {
     const m = materiAll.find((x) => x.id === btn.dataset.id);
     if (!m) return;
     const embedUrl = buildEmbedUrl(m);
+    const isShortCanva = (m.url || "").includes("canva.link");
+
     openModal(`
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0;">${esc(m.judul)}</h3>
         <button type="button" class="btn btn-sm btn-success" id="btnFullscreenModal">Mode Presentasi</button>
       </div>
-      <iframe id="previewIframe" src="${embedUrl}" style="width:100%; height:68vh; border:none; border-radius:8px; background:#f1f5f9;" allowfullscreen></iframe>
+      ${isShortCanva ? `<p class="hint" style="color:var(--danger);">Materi ini memakai link Canva pendek (canva.link) sehingga tidak bisa dipratinjau di sini. Edit materi ini dan ganti dengan link penuh dari Share &gt; Copy link di Canva.</p>` : ""}
+      <iframe id="previewIframe" src="${embedUrl}" style="width:100%; height:68vh; border:none; border-radius:8px; background:#f1f5f9;" allow="fullscreen" allowfullscreen></iframe>
       <p style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
         <a href="${esc(m.url)}" target="_blank" rel="noopener">Buka di tab baru / Link Asli</a>
       </p>
     `, true);
 
-    document.getElementById("btnFullscreenModal").addEventListener("click", () => {
-      const iframe = document.getElementById("previewIframe");
-      if (iframe.requestFullscreen) iframe.requestFullscreen();
-      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
-      else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
-    });
+    const iframeEl = document.getElementById("previewIframe");
+    const fullscreenBtn = document.getElementById("btnFullscreenModal");
+
+    const enterFullscreen = () => {
+      const req = iframeEl.requestFullscreen || iframeEl.webkitRequestFullscreen || iframeEl.msRequestFullscreen;
+      if (req) {
+        const result = req.call(iframeEl);
+        if (result && result.catch) result.catch(() => { /* browser blocked auto-fullscreen; user can click the button */ });
+      }
+    };
+
+    // Langsung masuk mode presentasi (fullscreen) begitu tombol Pratinjau/Presentasi diklik,
+    // selama tidak memakai link Canva pendek yang tidak bisa dimuat.
+    if (!isShortCanva) enterFullscreen();
+
+    fullscreenBtn.addEventListener("click", enterFullscreen);
   }
 
   if (btn.dataset.action === "edit-materi") {
@@ -1332,7 +1354,8 @@ function showEditMateriForm(m) {
       </div>
       <div class="form-group" id="editMateriLinkGroup" style="display:${isLink ? 'block' : 'none'};">
         <label>URL Link Materi</label>
-        <input type="text" id="editMateriLinkUrl" value="${isLink ? esc(m.url) : ''}">
+        <input type="text" id="editMateriLinkUrl" value="${isLink ? esc(m.url) : ''}" placeholder="https://www.canva.com/design/.../view">
+        <p class="hint" style="margin-bottom:0;">Khusus Canva: pakai link penuh (canva.com/design/.../view), bukan link pendek canva.link.</p>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
       <p id="editMateriStatus" class="status-text" style="margin-top:10px;"></p>
@@ -1369,6 +1392,11 @@ function showEditMateriForm(m) {
         if (!linkInput) {
           showLoading(false);
           statusEl.textContent = "URL Link wajib diisi.";
+          return;
+        }
+        if (linkInput.includes("canva.link")) {
+          showLoading(false);
+          statusEl.textContent = "Link Canva pendek (canva.link) tidak bisa dipakai. Gunakan link penuh dari Share > Copy link.";
           return;
         }
         newUrl = linkInput;
@@ -1428,17 +1456,24 @@ async function hapusMateri(docId) {
 function buildEmbedUrl(m) {
   let url = (m.url || "").trim();
 
-  // Handling Canva
+  // Handling Canva (link penuh: canva.com/design/{id}/{secret}/view)
   if (url.includes("canva.com")) {
-    // Jika link menggunakan format /view, ubah ke /watch
-    if (url.includes("/view")) {
-      return url.replace("/view", "/watch");
-    }
-    // Jika link menggunakan ID desain Canva standar
-    const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)/);
+    const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)/);
     if (canvaMatch) {
-      return `https://www.canva.com/design/${canvaMatch[1]}/watch`;
+      // Format embed resmi Canva: tambahkan ?embed di belakang /view (BUKAN /watch)
+      return `https://www.canva.com/design/${canvaMatch[1]}/${canvaMatch[2]}/view?embed`;
     }
+    // Link tanpa bagian "secret" (jarang terjadi) - tetap coba tambahkan ?embed
+    if (url.includes("/view")) {
+      return url.split("?")[0] + "?embed";
+    }
+    return url;
+  }
+
+  // Link pendek canva.link tidak bisa diprediksi ID desainnya dan biasanya
+  // diblokir kebijakan frame-ancestors Canva saat di-redirect - dibiarkan apa adanya
+  // (form materi & pesan status sudah mencegah link ini disimpan sejak awal).
+  if (url.includes("canva.link")) {
     return url;
   }
 
@@ -1458,7 +1493,7 @@ function buildEmbedUrl(m) {
   if (isPdf) {
     return `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
   }
-  
+
   if (isPpt) {
     return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
   }
