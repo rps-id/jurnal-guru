@@ -317,8 +317,10 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        <div class="header-actions" style="margin-bottom:6px;">
         <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplateAbsensi">Template Absensi (Excel)</button>
         <label class="btn btn-secondary btn-sm file-btn">Upload Absensi Excel<input type="file" id="fileAbsensiExcel" accept=".xlsx,.xls" hidden></label>
+        <label class="btn btn-success btn-sm file-btn">📷 Isi dari Foto (AI)<input type="file" id="fileAbsensiFoto" accept="image/*" capture="environment" hidden></label>
        </div>
        <p class="hint">Kolom Kehadiran diisi kode: <b>H</b>=Hadir, <b>S</b>=Sakit, <b>I</b>=Izin, <b>D</b>=Dispen, <b>A</b>=Alpa. Nama &amp; NIS pada template otomatis mengikuti siswa di kelas aktif. Setelah upload, tetap cek dulu lalu klik Simpan Absensi.</p>
+       <p class="hint">Fitur "Isi dari Foto (AI)": foto/scan lembar absensi tulisan tangan atau ketikan, AI akan mencocokkan nama dengan siswa di kelas aktif dan mengisi kolom Kehadiran secara otomatis. <b>Selalu cek ulang hasilnya</b> sebelum klik Simpan Absensi, karena hasil bacaan AI bisa saja tidak 100% tepat.</p>
 
        <div class="absensi-summary" id="absensiSummary">
         <button type="button" class="summary-badge sb-hadir" data-status="hadir">Hadir <span>0</span></button>
@@ -545,6 +547,10 @@ const firebaseConfig = {
 // Pengaturan Cloudinary Gratis
 const CLOUD_NAME = "di6fkvi5";
 const UPLOAD_PRESET = "di6fkvi5";
+
+// Pengaturan AI Assistant (Gemini via Cloudflare Worker proxy)
+// Ganti dengan URL Worker kamu setelah deploy (lihat panduan pemasangan).
+const AI_WORKER_URL = "https://jurnal-guru-ai.raka369f.workers.dev";
 
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
@@ -1080,6 +1086,88 @@ el("fileAbsensiExcel").addEventListener("change", (e) => {
     e.target.value = "";
   };
   reader.readAsArrayBuffer(file);
+});
+
+// ================================================
+// AI ASSISTANT - Isi Absensi dari Foto (Gemini via Cloudflare Worker)
+// ================================================
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function panggilAiAbsensi(base64Image, mimeType, daftarNamaSiswa) {
+  const res = await fetch(AI_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      image: base64Image,
+      mimeType: mimeType,
+      daftarSiswa: daftarNamaSiswa
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error("Worker AI merespons error: " + res.status + " " + errText);
+  }
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error("Format balasan AI tidak sesuai (bukan array).");
+  return data; // [{ nama, status }]
+}
+
+// Pencocokan nama sederhana: exact match dulu, lalu contains/mirip
+function cocokkanSiswaByNama(namaAi) {
+  const target = String(namaAi || "").trim().toLowerCase();
+  if (!target) return null;
+  let siswa = siswaCache.find((s) => s.nama.trim().toLowerCase() === target);
+  if (siswa) return siswa;
+  siswa = siswaCache.find((s) => s.nama.trim().toLowerCase().includes(target) || target.includes(s.nama.trim().toLowerCase()));
+  return siswa || null;
+}
+
+el("fileAbsensiFoto").addEventListener("change", async (e) => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa dulu."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (AI_WORKER_URL.includes("GANTI-DENGAN-URL-WORKER-KAMU")) {
+    el("absensiStatus").textContent = "Fitur AI belum aktif: isi dulu AI_WORKER_URL di kode dengan URL Cloudflare Worker kamu.";
+    e.target.value = "";
+    return;
+  }
+
+  el("absensiStatus").textContent = "Membaca foto dengan AI, mohon tunggu...";
+  showLoading(true);
+  try {
+    const base64 = await fileToBase64(file);
+    const daftarNama = siswaCache.map((s) => s.nama);
+    const hasil = await panggilAiAbsensi(base64, file.type || "image/jpeg", daftarNama);
+
+    let matched = 0, unmatched = 0;
+    const tidakDitemukan = [];
+    hasil.forEach((item) => {
+      const status = String(item.status || "").trim().toLowerCase();
+      if (!["hadir", "sakit", "izin", "dispen", "alpa"].includes(status)) return;
+      const siswa = cocokkanSiswaByNama(item.nama);
+      if (!siswa) { unmatched++; tidakDitemukan.push(item.nama); return; }
+      const sel = document.querySelector(`[data-absensi-siswa="${siswa.id}"]`);
+      if (sel) { sel.value = status; sel.className = "status-" + status; matched++; }
+    });
+
+    updateAbsensiSummary();
+    el("absensiStatus").textContent = "AI membaca foto: " + matched + " siswa cocok" +
+      (unmatched ? ", " + unmatched + " tidak ditemukan (" + tidakDitemukan.join(", ") + ")" : "") +
+      ". Periksa ulang setiap baris, lalu klik Simpan Absensi.";
+  } catch (err) {
+    console.error(err);
+    el("absensiStatus").textContent = "Gagal membaca foto dengan AI: " + err.message;
+  }
+  showLoading(false);
+  e.target.value = "";
 });
 
 async function muatRiwayatAbsensi() {
