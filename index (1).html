@@ -1,0 +1,1915 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jurnal Guru</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+:root {
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
+  --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+  --surface: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+html, body { min-height: 100%; background: var(--bg-gradient); color: var(--text-main); }
+button, input, select, textarea { font-family: 'Poppins', sans-serif; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.login-card { background: var(--surface); border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 44px 38px; width: 380px; max-width: 100%; }
+.login-mark { font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 16px; }
+.login-card h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.35; margin-bottom: 10px; }
+.login-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 26px; line-height: 1.5; }
+.btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; border: 1.5px solid #cbd5e1; color: var(--text-main); }
+.btn-google:hover { background: #f8fafc; }
+.error-text { color: var(--danger); font-size: 0.8rem; margin-top: 12px; min-height: 16px; }
+
+.app-container { background: var(--surface); width: 100%; max-width: 1200px; margin: 15px auto; border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-height: calc(100vh - 30px); display: flex; flex-direction: column; }
+header { background: linear-gradient(90deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 1.1rem; font-weight: 600; }
+.badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+.app-body { display: flex; flex: 1; }
+
+.sidebar { width: 220px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #e2e8f0; padding: 15px 10px; display: flex; flex-direction: column; gap: 5px; }
+.sidebar-btn { width: 100%; padding: 12px 15px; border: none; background: transparent; text-align: left; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.sidebar-btn:hover { background: #e0f2fe; color: var(--primary); }
+.sidebar-btn.active { background: var(--primary); color: white; font-weight: 600; }
+.sidebar-btn .menu-icon { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+.sidebar-spacer { flex: 1; }
+
+.content { flex: 1; padding: 25px; overflow-y: auto; max-height: calc(100vh - 90px); }
+.kelas-aktif-bar { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; }
+.kelas-aktif-bar label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.kelas-aktif-bar select { max-width: 320px; }
+
+.page-panel { display: none; }
+.page-panel.active { display: block; }
+
+.card { background: var(--surface); border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.card-header h3 { font-size: 1rem; font-weight: 600; }
+.muted-inline { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); margin-left: 6px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.card-footer { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+
+.form-group { margin-bottom: 15px; flex: 1; }
+.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; }
+input[type="text"], input[type="date"], input[type="number"], input[type="file"], select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; }
+textarea { resize: vertical; }
+
+.btn { background: var(--primary); color: white; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+.btn:hover { background: var(--primary-dark); }
+.btn-secondary { background: #e2e8f0; color: var(--text-main); }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; }
+.btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: #f0f9ff; }
+.btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.file-btn { cursor: pointer; }
+
+.table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+.preview-scroll { max-height: 200px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+th.sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
+th.sortable:hover { background: #e0f2fe; color: var(--primary); }
+.th-content { display: inline-flex; align-items: center; gap: 6px; }
+.th-icon { width: 14px; height: 14px; fill: currentColor; opacity: 0.75; flex-shrink: 0; }
+.sort-indicator { font-size: 0.7rem; margin-left: 2px; color: var(--primary); }
+
+th.col-no, td.col-no { width: 42px; text-align: center; color: var(--text-muted); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f8fafc; }
+.empty-row { text-align: center; color: var(--text-muted); padding: 22px 12px; }
+td select, td input[type="number"] { padding: 6px 8px; font-size: 0.82rem; }
+
+.status-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+.status-badge.success { background: #d1fae5; color: #065f46; }
+.status-badge.warning { background: #fef3c7; color: #92400e; }
+.status-badge.danger { background: #fee2e2; color: #991b1b; }
+.status-badge.muted { background: #f1f5f9; color: var(--text-muted); }
+
+.hint { font-size: 0.8rem; color: var(--text-muted); margin: 4px 0 12px; }
+.status-text { font-size: 0.8rem; color: var(--primary); min-height: 16px; }
+.preview-box { background: #fff8f6; border: 1px dashed var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+.preview-actions { display: flex; gap: 10px; margin-top: 10px; }
+.catatan-form { margin-top: 10px; }
+.rekap-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: white; padding: 25px; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-box h3 { margin-bottom: 14px; font-size: 1.05rem; }
+.modal-box.wide { max-width: 900px; }
+
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 10000; display: none; justify-content: center; align-items: center; font-weight: 600; color: var(--primary); }
+.loading-overlay.open { display: flex; }
+
+.absensi-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.summary-badge { border: none; cursor: pointer; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; opacity: 0.85; transition: opacity .15s; }
+.summary-badge:hover { opacity: 1; }
+.summary-badge.active { opacity: 1; box-shadow: 0 0 0 2px rgba(0,0,0,0.18) inset; }
+.summary-badge span { background: rgba(255,255,255,0.65); padding: 1px 8px; border-radius: 10px; }
+.sb-hadir { background: #d1fae5; color: #065f46; }
+.sb-sakit, .sb-izin { background: #fef3c7; color: #92400e; }
+.sb-dispen { background: #dbeafe; color: #1e40af; }
+.sb-alpa { background: #fee2e2; color: #991b1b; }
+
+.summary-detail { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.85rem; }
+.summary-detail h4 { font-size: 0.82rem; margin-bottom: 8px; color: var(--text-muted); }
+.summary-detail ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.summary-detail li { background: white; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 20px; }
+.summary-detail .empty { color: var(--text-muted); }
+
+select.status-hadir { background: #d1fae5; color: #065f46; font-weight: 600; border-color: #a7f3d0; }
+select.status-sakit, select.status-izin { background: #fef3c7; color: #92400e; font-weight: 600; border-color: #fde68a; }
+select.status-dispen { background: #dbeafe; color: #1e40af; font-weight: 600; border-color: #bfdbfe; }
+select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; border-color: #fecaca; }
+
+.materi-breadcrumb { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; }
+.materi-breadcrumb button { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.82rem; font-weight: 600; padding: 0; }
+.materi-breadcrumb button:hover { text-decoration: underline; }
+.materi-breadcrumb .sep { margin: 0 6px; color: #cbd5e1; }
+.materi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.materi-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: left; cursor: pointer; }
+.materi-card:hover { border-color: var(--primary); background: #f0f9ff; }
+.materi-card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; word-break: break-word; }
+.materi-card-count { font-size: 0.78rem; color: var(--text-muted); }
+
+@media (max-width: 780px) {
+  .app-container { margin: 0; min-height: 100vh; border-radius: 0; }
+  .app-body { flex-direction: column; }
+  .sidebar { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .sidebar-spacer { display: none; }
+  .sidebar-btn { white-space: nowrap; }
+  .content { max-height: none; padding: 18px; }
+  .form-row { flex-direction: column; gap: 0; }
+}
+</style>
+ </head>
+ <body>
+  <!-- Helper SVG Icons Definitions -->
+  <svg style="display: none;">
+    <g id="icon-hashtag"><path d="M10 13a1 1 0 001-1V8a1 1 0 00-2 0v4a1 1 0 001 1zM6 13a1 1 0 001-1V8a1 1 0 00-2 0v4a1 1 0 001 1zM3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></g>
+    <g id="icon-user"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></g>
+    <g id="icon-book"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></g>
+    <g id="icon-users"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3.005 3.005 0 013.75-2.906z"/></g>
+    <g id="icon-cog"><path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"/></g>
+    <g id="icon-idcard"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM4.5 9a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zM13 14a1 1 0 01-1 1H8a1 1 0 01-1-1v-.28c0-1.12.86-2.06 1.98-2.15 1.02-.08 2.02-.08 3.04 0 1.12.09 1.98 1.03 1.98 2.15V14z"/></g>
+    <g id="icon-check"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></g>
+    <g id="icon-calendar"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/></g>
+    <g id="icon-file"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></g>
+    <g id="icon-star"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></g>
+    <g id="icon-tag"><path d="M17.707 9.293l-5.414-5.414A1 1 0 0011.586 3.5H5a2 2 0 00-2 2v6.586a1 1 0 00.293.707l5.414 5.414a1 1 0 001.414 0l7.586-7.586a1 1 0 000-1.414zM6 8a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></g>
+    <g id="icon-chat"><path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"/></g>
+    <g id="icon-chart"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></g>
+    <g id="icon-folder"><path d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></g>
+    <g id="icon-logout"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h5a1 1 0 100-2H4V5h4a1 1 0 100-2H3zm9.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H7a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></g>
+  </svg>
+
+  <div id="loginPage" class="login-page">
+   <div class="login-card">
+    <p class="login-mark">Jurnal Guru</p>
+    <h1>Catatan mengajar, rapi di satu tempat.</h1>
+    <p class="login-sub">Kelas, absensi, nilai, catatan, dan materi siswa - semua dalam satu jurnal digital.</p>
+    <button id="loginBtn" class="btn btn-google">
+     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z" /> <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18z" /> <path fill="#FBBC05" d="M3.96 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.94A9 9 0 0 0 0 9c0 1.45.35 2.83.94 4.04l3.02-2.33z" /> <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .94 4.96l3.02 2.33C4.67 5.16 6.66 3.58 9 3.58z" />
+     </svg>
+     Masuk dengan Google
+    </button>
+    <p id="loginError" class="error-text" role="alert"></p>
+   </div>
+  </div>
+  <div id="appPage" class="app-container" style="display:none;">
+   <header>
+    <h1>Jurnal Guru</h1>
+    <span class="badge" id="userEmail">-</span>
+   </header>
+   <div class="app-body">
+    <aside class="sidebar">
+     <button type="button" class="sidebar-btn active" data-page="page-kelas">
+      <svg class="menu-icon"><use href="#icon-users"/></svg>
+      Kelas &amp; Siswa
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-absensi">
+      <svg class="menu-icon"><use href="#icon-check"/></svg>
+      Absensi
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-nilai">
+      <svg class="menu-icon"><use href="#icon-star"/></svg>
+      Nilai
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-catatan">
+      <svg class="menu-icon"><use href="#icon-chat"/></svg>
+      Catatan
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-materi">
+      <svg class="menu-icon"><use href="#icon-folder"/></svg>
+      Materi
+     </button>
+     <button type="button" class="sidebar-btn" data-page="page-rekap">
+      <svg class="menu-icon"><use href="#icon-chart"/></svg>
+      Rekap
+     </button>
+     <div class="sidebar-spacer"></div>
+     <button type="button" class="btn btn-danger btn-sm" id="logoutBtn" style="justify-content: flex-start; gap: 8px;">
+      <svg class="menu-icon" style="width: 16px; height: 16px;"><use href="#icon-logout"/></svg>
+      Keluar
+     </button>
+    </aside>
+    <main class="content">
+     <div class="kelas-aktif-bar">
+      <label for="kelasAktifSelect">Kelas Aktif</label> <select id="kelasAktifSelect"><option value="">-- Pilih kelas --</option></select>
+     </div>
+
+     <section id="page-kelas" class="page-panel active">
+      <div class="card">
+       <div class="card-header">
+        <h3>Kelas Saya</h3>
+        <button type="button" class="btn btn-sm" id="btnTambahKelas">+ Tambah Kelas</button>
+       </div>
+       <div class="table-container">
+        <table id="tableKelas">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-book"/></svg>Nama Kelas<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="mapel"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Mapel<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="jumlahSiswa"><div class="th-content"><svg class="th-icon"><use href="#icon-users"/></svg>Jumlah Siswa<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodyKelas"><tr><td colspan="5" class="empty-row">Belum ada kelas.</td></tr></tbody>
+        </table>
+       </div>
+      </div>
+      <div class="card">
+       <div class="card-header">
+        <h3>Siswa <span id="siswaKelasLabel" class="muted-inline"></span></h3>
+        <div class="header-actions">
+         <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplate">Template Excel</button>
+         <label class="btn btn-secondary btn-sm file-btn">Upload Excel<input type="file" id="fileSiswaExcel" accept=".xlsx,.xls" hidden></label>
+        </div>
+       </div>
+       <p class="hint">Kolom yang dibutuhkan pada file Excel: <b>Nama</b>, <b>NIS</b></p>
+       <div id="previewSiswaBox" class="preview-box" hidden>
+        <h4>Pratinjau Import Siswa</h4>
+        <div class="table-container preview-scroll">
+         <table id="tablePreviewSiswa">
+          <thead>
+           <tr>
+            <th class="col-no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS</div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-check"/></svg>Status</div></th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+         </table>
+        </div>
+        <div class="preview-actions">
+         <button type="button" class="btn btn-success btn-sm" id="btnConfirmImportSiswa">Simpan Data Valid</button>
+         <button type="button" class="btn btn-secondary btn-sm" id="btnCancelImportSiswa">Batal</button>
+        </div>
+       </div>
+       <div class="table-container">
+        <table id="tableSiswa">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodySiswa"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+        </table>
+       </div>
+      </div>
+     </section>
+
+     <section id="page-absensi" class="page-panel">
+      <div class="card">
+       <div class="card-header">
+        <h3>Absensi <span id="absensiKelasLabel" class="muted-inline"></span></h3>
+       </div>
+       <div class="form-row">
+        <div class="form-group"><label>Tanggal Pertemuan</label><input type="date" id="absensiTanggal"></div>
+        <div class="form-group" style="flex:2;"><label>Materi</label><input type="text" id="absensiMateri" placeholder="Contoh: Hukum Newton I"></div>
+       </div>
+
+       <div class="header-actions" style="margin-bottom:6px;">
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplateAbsensi">Template Absensi (Excel)</button>
+        <label class="btn btn-secondary btn-sm file-btn">Upload Absensi Excel<input type="file" id="fileAbsensiExcel" accept=".xlsx,.xls" hidden></label>
+       </div>
+       <p class="hint">Kolom Kehadiran diisi kode: <b>H</b>=Hadir, <b>S</b>=Sakit, <b>I</b>=Izin, <b>D</b>=Dispen, <b>A</b>=Alpa. Nama &amp; NIS pada template otomatis mengikuti siswa di kelas aktif. Setelah upload, tetap cek dulu lalu klik Simpan Absensi.</p>
+
+       <div class="absensi-summary" id="absensiSummary">
+        <button type="button" class="summary-badge sb-hadir" data-status="hadir">Hadir <span>0</span></button>
+        <button type="button" class="summary-badge sb-sakit" data-status="sakit">Sakit <span>0</span></button>
+        <button type="button" class="summary-badge sb-izin" data-status="izin">Izin <span>0</span></button>
+        <button type="button" class="summary-badge sb-dispen" data-status="dispen">Dispen <span>0</span></button>
+        <button type="button" class="summary-badge sb-alpa" data-status="alpa">Alpa <span>0</span></button>
+       </div>
+       <div class="summary-detail" id="absensiSummaryDetail" hidden></div>
+
+       <div class="table-container">
+        <table id="tableAbsensi">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-check"/></svg>Kehadiran</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodyAbsensi"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+        </table>
+       </div>
+       <div class="card-footer">
+        <button type="button" class="btn btn-primary" id="btnSimpanAbsensi">Simpan Absensi</button>
+        <p id="absensiStatus" class="status-text"></p>
+       </div>
+      </div>
+      <div class="card">
+       <div class="card-header"><h3>Riwayat Pertemuan</h3></div>
+       <div class="table-container">
+        <table id="tableRiwayatAbsensi">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="materi"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Materi<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="hadir"><div class="th-content">Hadir<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="sakit"><div class="th-content">Sakit<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="izin"><div class="th-content">Izin<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="dispen"><div class="th-content">Dispen<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="alpa"><div class="th-content">Alpa<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodyRiwayatAbsensi"><tr><td colspan="9" class="empty-row">Belum ada data.</td></tr></tbody>
+        </table>
+       </div>
+      </div>
+     </section>
+
+     <section id="page-nilai" class="page-panel">
+      <div class="card">
+       <div class="card-header"><h3>Input Nilai <span id="nilaiKelasLabel" class="muted-inline"></span></h3></div>
+       <div class="form-row">
+        <div class="form-group">
+         <label>Jenis Penilaian</label> <select id="nilaiJenis"> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
+        </div>
+        <div class="form-group" style="flex:2;"><label>Nama Penilaian</label><input type="text" id="nilaiNama" placeholder="Contoh: Tugas 1 - Gerak Lurus"></div>
+        <div class="form-group"><label>Tanggal</label><input type="date" id="nilaiTanggal"></div>
+       </div>
+
+       <div class="header-actions" style="margin-bottom:6px;">
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplateNilai">Template Nilai (Excel)</button>
+        <label class="btn btn-secondary btn-sm file-btn">Upload Nilai Excel<input type="file" id="fileNilaiExcel" accept=".xlsx,.xls" hidden></label>
+       </div>
+       <p class="hint">Template berisi Nama &amp; NIS siswa di kelas aktif secara otomatis - isi kolom Nilai lalu upload kembali. Lengkapi Jenis/Nama Penilaian/Tanggal di atas, lalu klik Simpan Nilai.</p>
+
+       <div class="table-container">
+        <table id="tableNilaiInput">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-user"/></svg>Nama<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nis"><div class="th-content"><svg class="th-icon"><use href="#icon-idcard"/></svg>NIS<span class="sort-indicator">↕</span></div></th>
+           <th style="width:120px;"><div class="th-content"><svg class="th-icon"><use href="#icon-star"/></svg>Nilai</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodyNilaiInput"><tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr></tbody>
+        </table>
+       </div>
+       <div class="card-footer">
+        <button type="button" class="btn btn-primary" id="btnSimpanNilai">Simpan Nilai</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnBatalEditNilai" hidden>Batal Edit</button>
+        <p id="nilaiStatus" class="status-text"></p>
+       </div>
+      </div>
+      <div class="card">
+       <div class="card-header">
+        <h3>Riwayat Penilaian</h3>
+        <select id="filterRiwayatJenis"> <option value="">-- Semua jenis --</option> <option value="tugas">Tugas</option> <option value="ulangan_harian">Ulangan Harian</option> <option value="uts">UTS</option> <option value="uas">UAS</option> </select>
+       </div>
+       <div class="table-container">
+        <table id="tableRiwayatNilai">
+         <thead>
+          <tr>
+           <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="nama"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Nama Penilaian<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="jenis"><div class="th-content"><svg class="th-icon"><use href="#icon-tag"/></svg>Jenis<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+           <th class="sortable" data-sort="avg"><div class="th-content"><svg class="th-icon"><use href="#icon-star"/></svg>Rata-rata<span class="sort-indicator">↕</span></div></th>
+           <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+         </thead>
+         <tbody id="tbodyRiwayatNilai"><tr><td colspan="6" class="empty-row">Belum ada data.</td></tr></tbody>
+        </table>
+       </div>
+      </div>
+     </section>
+
+     <section id="page-catatan" class="page-panel">
+      <div class="card">
+       <div class="card-header">
+        <h3>Catatan Siswa <span id="catatanKelasLabel" class="muted-inline"></span></h3>
+        <select id="catatanSiswaSelect"><option value="">-- Pilih siswa --</option></select>
+       </div>
+       <div id="catatanForm" class="catatan-form" hidden>
+        <div class="form-row">
+         <div class="form-group"><label>Tanggal</label><input type="date" id="catatanTanggal"></div>
+         <div class="form-group" style="flex:2;"><label>Catatan</label><textarea id="catatanIsi" rows="2" placeholder="Contoh: Sering terlambat masuk kelas"></textarea></div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="btnTambahCatatan">Tambah Catatan</button>
+        <p id="catatanStatus" class="status-text"></p>
+        <div class="table-container" style="margin-top:14px;">
+         <table id="tableCatatan">
+          <thead>
+           <tr>
+            <th class="col-no sortable" data-sort="no"><div class="th-content"><svg class="th-icon"><use href="#icon-hashtag"/></svg>No<span class="sort-indicator">↕</span></div></th>
+            <th class="sortable" data-sort="tanggal"><div class="th-content"><svg class="th-icon"><use href="#icon-calendar"/></svg>Tanggal<span class="sort-indicator">↕</span></div></th>
+            <th class="sortable" data-sort="isi"><div class="th-content"><svg class="th-icon"><use href="#icon-chat"/></svg>Catatan<span class="sort-indicator">↕</span></div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+           </tr>
+          </thead>
+          <tbody id="tbodyCatatan"><tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr></tbody>
+         </table>
+        </div>
+       </div>
+       <p id="catatanEmptyHint" class="hint">Pilih siswa di atas untuk melihat dan menambah catatan.</p>
+      </div>
+     </section>
+
+     <section id="page-materi" class="page-panel">
+      <div class="card">
+       <div class="card-header">
+        <h3>Tambah Materi</h3>
+        <span class="status-badge success">Cloudinary Storage Aktif</span>
+       </div>
+       <p class="hint">Materi dikelompokkan: Mata Pelajaran &gt; Bab. Bisa upload berkas PDF/PPT ke Cloudinary, atau tempel link (Google Drive, Canva, Google Slides, dll) yang bisa langsung dipratinjau dan dipresentasikan.</p>
+
+       <div class="form-row" style="margin-top:15px;">
+        <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="materiMapel" list="daftarMapel" placeholder="Contoh: Fisika"><datalist id="daftarMapel"></datalist></div>
+        <div class="form-group"><label>Bab</label><input type="text" id="materiBab" list="daftarBab" placeholder="Contoh: Bab 2 - Gerak Lurus"><datalist id="daftarBab"></datalist></div>
+       </div>
+       <div class="form-row">
+        <div class="form-group" style="flex:2;"><label>Judul</label><input type="text" id="materiJudul" placeholder="Contoh: Slide GLB dan GLBB"></div>
+        <div class="form-group"><label>Sumber Materi</label>
+         <select id="materiSumber">
+          <option value="upload">Upload Berkas (PDF/PPT)</option>
+          <option value="link">Tempel Link (Drive/Canva/lainnya)</option>
+         </select>
+        </div>
+       </div>
+       <div class="form-row">
+        <div class="form-group" id="materiUploadGroup"><label>Berkas</label><input type="file" id="fileMateri" accept=".pdf,.ppt,.pptx"></div>
+        <div class="form-group" id="materiLinkGroup" style="display:none;">
+         <label>URL Link</label>
+         <input type="text" id="materiLinkUrl" placeholder="https://www.canva.com/design/.../view atau link Google Drive/Slides">
+         <p class="hint" style="margin-bottom:0;">Khusus Canva: gunakan link <b>penuh</b> dari Share &gt; Copy link (formatnya <code>canva.com/design/...../view</code>). Link pendek <code>canva.link/...</code> tidak bisa dipakai untuk pratinjau/presentasi di dalam aplikasi ini.</p>
+        </div>
+       </div>
+       <button type="button" class="btn btn-primary" id="btnUploadMateri">Simpan Materi</button>
+       <p id="materiStatus" class="status-text"></p>
+      </div>
+
+      <div class="card">
+       <div class="card-header"><h3>Perpustakaan Materi</h3></div>
+       <div id="materiBreadcrumb" class="materi-breadcrumb"></div>
+       <div id="materiListContainer"><p class="hint">Belum ada materi.</p></div>
+      </div>
+     </section>
+
+     <section id="page-rekap" class="page-panel">
+      <div class="card">
+       <div class="card-header"><h3>Rekap Kelas Aktif <span id="rekapKelasLabel" class="muted-inline"></span></h3></div>
+       <p class="rekap-desc">Unduh rekap absensi (hadir/sakit/izin/dispen/alpa) dan rata-rata nilai per jenis penilaian untuk kelas yang sedang aktif, dalam satu file Excel.</p>
+       <button type="button" class="btn btn-primary" id="btnRekapKelas">Unduh Rekap Kelas Ini</button>
+      </div>
+      <div class="card">
+       <div class="card-header"><h3>Rekap Seluruh Kelas</h3></div>
+       <p class="rekap-desc">Unduh rekap gabungan semua kelas dalam satu file Excel - ada sheet ringkasan seluruh kelas, dan satu sheet detail per kelas.</p>
+       <button type="button" class="btn btn-primary" id="btnRekapSemua">Unduh Rekap Semua Kelas</button>
+      </div>
+      <p id="rekapStatus" class="status-text"></p>
+     </section>
+
+    </main>
+   </div>
+  </div>
+  <div class="modal-overlay" id="modalOverlay">
+   <div class="modal-box" id="modalBox"></div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay">Memuat...</div>
+
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
+  getDocs, getDoc, query, orderBy, writeBatch, getCountFromServer
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAofW28SgnD-ENyqcmJzsjqB-jyfO8HiME",
+  authDomain: "jurnal-guru-15021.firebaseapp.com",
+  projectId: "jurnal-guru-15021",
+  storageBucket: "jurnal-guru-15021.firebasestorage.app",
+  messagingSenderId: "613992565814",
+  appId: "1:613992565814:web:c3ac625865f8e3d058dc97",
+  measurementId: "G-29KTTP4P5W"
+};
+
+// Pengaturan Cloudinary Gratis
+const CLOUD_NAME = "di6fkvi5";
+const UPLOAD_PRESET = "di6fkvi5";
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+
+let uid = null;
+let kelasCache = [];
+let siswaCache = [];
+let activeKelasId = null;
+let editingNilaiId = null;
+let tempImportSiswa = [];
+let activeSummaryStatus = null;
+
+let materiAll = [];
+let materiSelMapel = null;
+let materiSelBab = null;
+
+let riwayatAbsensiCache = [];
+let riwayatNilaiCache = [];
+let catatanCache = [];
+
+// State Sort per tabel
+const sortState = {
+  tableKelas: { key: null, asc: true },
+  tableSiswa: { key: null, asc: true },
+  tableAbsensi: { key: null, asc: true },
+  tableRiwayatAbsensi: { key: null, asc: true },
+  tableNilaiInput: { key: null, asc: true },
+  tableRiwayatNilai: { key: null, asc: true },
+  tableCatatan: { key: null, asc: true },
+  tableMateri: { key: null, asc: true }
+};
+
+const JENIS_LABEL = { tugas: "Tugas", ulangan_harian: "Ulangan Harian", uts: "UTS", uas: "UAS" };
+const STATUS_LABEL = { hadir: "Hadir", sakit: "Sakit", izin: "Izin", dispen: "Dispen", alpa: "Alpa" };
+const KODE_KEHADIRAN = { H: "hadir", S: "sakit", I: "izin", D: "dispen", A: "alpa" };
+
+function el(id) { return document.getElementById(id); }
+function esc(str) { const d = document.createElement("div"); d.textContent = str ?? ""; return d.innerHTML; }
+function showLoading(v) { el("loadingOverlay").classList.toggle("open", v); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function openModal(html, wide) { el("modalBox").className = "modal-box" + (wide ? " wide" : ""); el("modalBox").innerHTML = html; el("modalOverlay").classList.add("open"); }
+function closeModal() { el("modalOverlay").classList.remove("open"); }
+el("modalOverlay").addEventListener("click", (e) => { if (e.target.id === "modalOverlay") closeModal(); });
+
+// Helper generic sort untuk data array
+function sortDataArray(arr, key, asc, getVal) {
+  if (!key) return arr;
+  return [...arr].sort((a, b) => {
+    let valA = getVal ? getVal(a, key) : a[key];
+    let valB = getVal ? getVal(b, key) : b[key];
+    if (valA == null) valA = "";
+    if (valB == null) valB = "";
+    if (typeof valA === "number" && typeof valB === "number") {
+      return asc ? valA - valB : valB - valA;
+    }
+    return asc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+  });
+}
+
+function updateSortIndicators(tableId, currentKey, asc) {
+  const table = el(tableId);
+  if (!table) return;
+  table.querySelectorAll("th.sortable").forEach((th) => {
+    const ind = th.querySelector(".sort-indicator");
+    if (!ind) return;
+    if (th.dataset.sort === currentKey) {
+      ind.textContent = asc ? " ↑" : " ↓";
+    } else {
+      ind.textContent = " ↕";
+    }
+  });
+}
+
+function setupTableSortListeners() {
+  document.querySelectorAll("th.sortable[data-sort]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const table = th.closest("table");
+      if (!table) return;
+      const tableId = table.id;
+      const key = th.dataset.sort;
+      if (!tableId || !sortState[tableId]) return;
+
+      if (sortState[tableId].key === key) {
+        sortState[tableId].asc = !sortState[tableId].asc;
+      } else {
+        sortState[tableId].key = key;
+        sortState[tableId].asc = true;
+      }
+
+      updateSortIndicators(tableId, sortState[tableId].key, sortState[tableId].asc);
+
+      // Re-render tabel yang bersangkutan
+      if (tableId === "tableKelas") renderTabelKelas();
+      if (tableId === "tableSiswa") renderTabelSiswa();
+      if (tableId === "tableAbsensi") renderTabelAbsensiInput();
+      if (tableId === "tableRiwayatAbsensi") renderTabelRiwayatAbsensiHTML();
+      if (tableId === "tableNilaiInput") renderTabelNilaiInput();
+      if (tableId === "tableRiwayatNilai") renderTabelRiwayatNilaiHTML();
+      if (tableId === "tableCatatan") renderTabelCatatanHTML();
+      if (tableId === "tableMateri") renderMateriLibrary();
+    });
+  });
+}
+
+el("loginBtn").addEventListener("click", () => {
+  el("loginError").textContent = "";
+  signInWithPopup(auth, provider).catch((err) => {
+    console.error(err);
+    el("loginError").textContent = "Login gagal. Coba lagi.";
+  });
+});
+
+el("logoutBtn").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    el("loginPage").style.display = "none";
+    el("appPage").style.display = "flex";
+    el("userEmail").textContent = user.email;
+    uid = user.uid;
+    setupTableSortListeners();
+    muatKelas();
+    muatMateri();
+  } else {
+    el("loginPage").style.display = "flex";
+    el("appPage").style.display = "none";
+    uid = null;
+  }
+});
+
+document.querySelectorAll(".sidebar-btn[data-page]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".sidebar-btn[data-page]").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".page-panel").forEach((p) => p.classList.remove("active"));
+    btn.classList.add("active");
+    el(btn.dataset.page).classList.add("active");
+  });
+});
+
+const kelasCol = () => collection(db, "users", uid, "kelas");
+const siswaCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "siswa");
+const pertemuanCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "pertemuan");
+const nilaiCol = (kelasId) => collection(db, "users", uid, "kelas", kelasId, "nilai");
+const catatanCol = (kelasId, siswaId) => collection(db, "users", uid, "kelas", kelasId, "siswa", siswaId, "catatan");
+const materiCol = () => collection(db, "users", uid, "materi");
+
+async function muatKelas() {
+  showLoading(true);
+  const snap = await getDocs(query(kelasCol(), orderBy("nama")));
+  kelasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  await Promise.all(kelasCache.map(async (k) => {
+    try {
+      const countSnap = await getCountFromServer(siswaCol(k.id));
+      k.jumlahSiswa = countSnap.data().count;
+    } catch (e) {
+      k.jumlahSiswa = k.jumlahSiswa ?? 0;
+    }
+  }));
+  showLoading(false);
+
+  const sel = el("kelasAktifSelect");
+  const prevVal = activeKelasId;
+  sel.innerHTML = '<option value="">-- Pilih kelas --</option>' +
+    kelasCache.map((k) => `<option value="${k.id}">${esc(k.nama)}${k.mapel ? " - " + esc(k.mapel) : ""}</option>`).join("");
+  if (prevVal && kelasCache.some((k) => k.id === prevVal)) sel.value = prevVal;
+  else if (kelasCache.length > 0) sel.value = kelasCache[0].id;
+  activeKelasId = sel.value || null;
+
+  renderTabelKelas();
+  await onKelasAktifChange();
+}
+
+function renderTabelKelas() {
+  const tbody = el("tbodyKelas");
+  if (kelasCache.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Belum ada kelas. Klik "+ Tambah Kelas" untuk mulai.</td></tr>';
+    return;
+  }
+
+  const { key, asc } = sortState.tableKelas;
+  let list = kelasCache.map((k, idx) => ({ ...k, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((k, i) => `
+    <tr>
+      <td class="col-no">${k.originalNo}</td>
+      <td><strong>${esc(k.nama)}</strong></td>
+      <td>${esc(k.mapel || "-")}</td>
+      <td>${k.jumlahSiswa ?? 0}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="edit-kelas" data-id="${k.id}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-kelas" data-id="${k.id}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+el("tbodyKelas").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  if (btn.dataset.action === "edit-kelas") showKelasForm(btn.dataset.id);
+  if (btn.dataset.action === "hapus-kelas") hapusKelas(btn.dataset.id);
+});
+
+el("kelasAktifSelect").addEventListener("change", () => {
+  activeKelasId = el("kelasAktifSelect").value || null;
+  onKelasAktifChange();
+});
+
+async function onKelasAktifChange() {
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  const label = kelas ? `- ${kelas.nama}${kelas.mapel ? " - " + kelas.mapel : ""}` : "";
+  ["siswaKelasLabel", "absensiKelasLabel", "nilaiKelasLabel", "catatanKelasLabel", "rekapKelasLabel"].forEach((id) => { el(id).textContent = label; });
+
+  if (!activeKelasId) {
+    siswaCache = [];
+    renderTabelSiswa();
+    renderTabelAbsensiInput();
+    renderTabelNilaiInput();
+    renderCatatanSiswaSelect();
+    el("tbodyRiwayatAbsensi").innerHTML = '<tr><td colspan="9" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>';
+    el("tbodyRiwayatNilai").innerHTML = '<tr><td colspan="6" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>';
+    return;
+  }
+
+  showLoading(true);
+  const snap = await getDocs(query(siswaCol(activeKelasId), orderBy("nama")));
+  showLoading(false);
+  siswaCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  if (kelas) { kelas.jumlahSiswa = siswaCache.length; renderTabelKelas(); }
+
+  renderTabelSiswa();
+  renderTabelAbsensiInput();
+  renderTabelNilaiInput();
+  renderCatatanSiswaSelect();
+  muatRiwayatAbsensi();
+  muatRiwayatNilai();
+
+  el("absensiTanggal").value = todayStr();
+  el("nilaiTanggal").value = todayStr();
+  await muatAbsensiUntukTanggal();
+}
+
+el("btnTambahKelas").addEventListener("click", () => showKelasForm());
+
+function showKelasForm(editId = null) {
+  const d = editId ? kelasCache.find((k) => k.id === editId) : { nama: "", mapel: "" };
+  openModal(`
+    <h3>${editId ? "Edit" : "Tambah"} Kelas</h3>
+    <form id="formKelas">
+      <div class="form-group"><label>Nama Kelas</label><input type="text" id="fKelasNama" value="${esc(d.nama)}" required></div>
+      <div class="form-group"><label>Mata Pelajaran</label><input type="text" id="fKelasMapel" value="${esc(d.mapel || "")}"></div>
+      <button type="submit" class="btn" style="width:100%;">Simpan</button>
+    </form>
+  `);
+  el("formKelas").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nama = el("fKelasNama").value.trim();
+    const mapel = el("fKelasMapel").value.trim();
+    if (!nama) return;
+    showLoading(true);
+    if (editId) await updateDoc(doc(db, "users", uid, "kelas", editId), { nama, mapel });
+    else await addDoc(kelasCol(), { nama, mapel, dibuat: new Date().toISOString() });
+    showLoading(false);
+    closeModal();
+    muatKelas();
+  });
+}
+
+async function hapusKelas(kelasId) {
+  const k = kelasCache.find((x) => x.id === kelasId);
+  if (!confirm(`Hapus kelas "${k?.nama}"? Semua data siswa, absensi, nilai, dan catatan di kelas ini akan ikut terhapus.`)) return;
+  showLoading(true);
+  const siswaSnap = await getDocs(siswaCol(kelasId));
+  for (const s of siswaSnap.docs) {
+    const catSnap = await getDocs(catatanCol(kelasId, s.id));
+    for (const c of catSnap.docs) await deleteDoc(c.ref);
+    await deleteDoc(s.ref);
+  }
+  const pertemuanSnap = await getDocs(pertemuanCol(kelasId));
+  for (const p of pertemuanSnap.docs) await deleteDoc(p.ref);
+  const nilaiSnap = await getDocs(nilaiCol(kelasId));
+  for (const n of nilaiSnap.docs) await deleteDoc(n.ref);
+  await deleteDoc(doc(db, "users", uid, "kelas", kelasId));
+  showLoading(false);
+  if (activeKelasId === kelasId) activeKelasId = null;
+  muatKelas();
+}
+
+function renderTabelSiswa() {
+  const tbody = el("tbodySiswa");
+  if (!activeKelasId) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>'; return; }
+  if (siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada siswa. Upload Excel atau unduh template di atas.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableSiswa;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s, i) => `
+    <tr>
+      <td class="col-no">${s.originalNo}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td><button class="btn btn-sm btn-danger" data-action="hapus-siswa" data-id="${s.id}">Hapus</button></td>
+    </tr>
+  `).join("");
+}
+el("tbodySiswa").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action='hapus-siswa']");
+  if (btn) hapusSiswa(btn.dataset.id);
+});
+
+async function hapusSiswa(siswaId) {
+  if (!confirm("Hapus siswa ini beserta seluruh catatannya?")) return;
+  showLoading(true);
+  const catSnap = await getDocs(catatanCol(activeKelasId, siswaId));
+  for (const c of catSnap.docs) await deleteDoc(c.ref);
+  await deleteDoc(doc(db, "users", uid, "kelas", activeKelasId, "siswa", siswaId));
+  showLoading(false);
+  onKelasAktifChange();
+}
+
+el("btnDownloadTemplate").addEventListener("click", () => {
+  const ws = XLSX.utils.aoa_to_sheet([["Nama", "NIS"], ["Contoh: Ahmad Fauzi", "12345"], ["Contoh: Siti Aminah", "12346"]]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Template Siswa");
+  XLSX.writeFile(wb, "template-siswa.xlsx");
+});
+
+el("fileSiswaExcel").addEventListener("change", (e) => {
+  if (!activeKelasId) { alert("Pilih kelas dulu sebelum upload."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    tempImportSiswa = [];
+    const tbody = document.querySelector("#tablePreviewSiswa tbody");
+    tbody.innerHTML = "";
+    rows.forEach((row, i) => {
+      const nama = row["Nama"] || row["nama"];
+      const nis = row["NIS"] || row["nis"];
+      const valid = !!nama;
+      tempImportSiswa.push({ nama: nama ? String(nama).trim() : "", nis: nis ? String(nis).trim() : "", valid });
+      tbody.innerHTML += `<tr><td class="col-no">${i + 1}</td><td>${esc(nama || "-")}</td><td>${esc(nis || "-")}</td><td><span class="status-badge ${valid ? "success" : "danger"}">${valid ? "Valid" : "Nama kosong"}</span></td></tr>`;
+    });
+    el("previewSiswaBox").hidden = false;
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+el("btnConfirmImportSiswa").addEventListener("click", async () => {
+  const valids = tempImportSiswa.filter((s) => s.valid);
+  if (valids.length === 0) return alert("Tidak ada data valid untuk disimpan.");
+  showLoading(true);
+  const batch = writeBatch(db);
+  valids.forEach((s) => { const ref = doc(siswaCol(activeKelasId)); batch.set(ref, { nama: s.nama, nis: s.nis }); });
+  await batch.commit();
+  showLoading(false);
+  el("previewSiswaBox").hidden = true;
+  el("fileSiswaExcel").value = "";
+  onKelasAktifChange();
+});
+el("btnCancelImportSiswa").addEventListener("click", () => { el("previewSiswaBox").hidden = true; el("fileSiswaExcel").value = ""; });
+
+function renderTabelAbsensiInput() {
+  const tbody = el("tbodyAbsensi");
+  if (!activeKelasId || siswaCache.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>';
+    updateAbsensiSummary();
+    return;
+  }
+
+  const currentSelectVals = {};
+  document.querySelectorAll("#tbodyAbsensi select[data-absensi-siswa]").forEach((sel) => {
+    currentSelectVals[sel.dataset.absensiSiswa] = sel.value;
+  });
+
+  const { key, asc } = sortState.tableAbsensi;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s, i) => {
+    const val = currentSelectVals[s.id] || "hadir";
+    return `
+    <tr>
+      <td class="col-no">${s.originalNo}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td>
+        <select class="status-${val}" data-absensi-siswa="${s.id}" data-nama="${esc(s.nama)}">
+          <option value="hadir" ${val === 'hadir' ? 'selected' : ''}>Hadir</option>
+          <option value="sakit" ${val === 'sakit' ? 'selected' : ''}>Sakit</option>
+          <option value="izin" ${val === 'izin' ? 'selected' : ''}>Izin</option>
+          <option value="dispen" ${val === 'dispen' ? 'selected' : ''}>Dispen</option>
+          <option value="alpa" ${val === 'alpa' ? 'selected' : ''}>Alpa</option>
+        </select>
+      </td>
+    </tr>
+  `;
+  }).join("");
+  updateAbsensiSummary();
+}
+
+el("tbodyAbsensi").addEventListener("change", (e) => {
+  const sel = e.target.closest("select[data-absensi-siswa]");
+  if (!sel) return;
+  sel.className = "status-" + sel.value;
+  updateAbsensiSummary();
+});
+
+function computeAbsensiCounts() {
+  const counts = { hadir: 0, sakit: 0, izin: 0, dispen: 0, alpa: 0 };
+  document.querySelectorAll("#tbodyAbsensi [data-absensi-siswa]").forEach((sel) => {
+    if (counts[sel.value] !== undefined) counts[sel.value]++;
+  });
+  return counts;
+}
+
+function updateAbsensiSummary() {
+  const counts = computeAbsensiCounts();
+  Object.keys(counts).forEach((status) => {
+    const badge = document.querySelector(`.summary-badge[data-status="${status}"] span`);
+    if (badge) badge.textContent = counts[status];
+  });
+  if (activeSummaryStatus) renderAbsensiSummaryDetail(activeSummaryStatus);
+}
+
+function renderAbsensiSummaryDetail(status) {
+  const names = [];
+  document.querySelectorAll("#tbodyAbsensi [data-absensi-siswa]").forEach((sel) => {
+    if (sel.value === status) names.push(sel.dataset.nama);
+  });
+  const box = el("absensiSummaryDetail");
+  box.hidden = false;
+  box.innerHTML = `<h4>${STATUS_LABEL[status]} (${names.length})</h4>` +
+    (names.length ? `<ul>${names.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="empty">Tidak ada siswa dengan status ini.</p>`);
+}
+
+document.querySelectorAll(".summary-badge").forEach((badge) => {
+  badge.addEventListener("click", () => {
+    const status = badge.dataset.status;
+    if (activeSummaryStatus === status) {
+      activeSummaryStatus = null;
+      el("absensiSummaryDetail").hidden = true;
+      document.querySelectorAll(".summary-badge").forEach((b) => b.classList.remove("active"));
+      return;
+    }
+    activeSummaryStatus = status;
+    document.querySelectorAll(".summary-badge").forEach((b) => b.classList.toggle("active", b === badge));
+    renderAbsensiSummaryDetail(status);
+  });
+});
+
+el("absensiTanggal").addEventListener("change", muatAbsensiUntukTanggal);
+
+async function muatAbsensiUntukTanggal() {
+  if (!activeKelasId) return;
+  const tgl = el("absensiTanggal").value;
+  if (!tgl) return;
+  showLoading(true);
+  const snap = await getDoc(doc(pertemuanCol(activeKelasId), tgl));
+  showLoading(false);
+  const data = snap.exists() ? snap.data() : null;
+  el("absensiMateri").value = data?.materi || "";
+  document.querySelectorAll("[data-absensi-siswa]").forEach((sel) => {
+    const val = data?.absensi?.[sel.dataset.absensiSiswa] || "hadir";
+    sel.value = val;
+    sel.className = "status-" + val;
+  });
+  updateAbsensiSummary();
+}
+
+el("btnSimpanAbsensi").addEventListener("click", async () => {
+  if (!activeKelasId) return;
+  const tgl = el("absensiTanggal").value;
+  if (!tgl) { el("absensiStatus").textContent = "Pilih tanggal dulu."; return; }
+  if (siswaCache.length === 0) { el("absensiStatus").textContent = "Belum ada siswa di kelas ini."; return; }
+  const absensi = {};
+  document.querySelectorAll("[data-absensi-siswa]").forEach((sel) => { absensi[sel.dataset.absensiSiswa] = sel.value; });
+  showLoading(true);
+  await setDoc(doc(pertemuanCol(activeKelasId), tgl), { tanggal: tgl, materi: el("absensiMateri").value.trim(), absensi });
+  showLoading(false);
+  el("absensiStatus").textContent = "Absensi tersimpan.";
+  muatRiwayatAbsensi();
+});
+
+el("btnDownloadTemplateAbsensi").addEventListener("click", () => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa terlebih dahulu."); return; }
+  const rows = [["No", "Nama", "NIS", "Kehadiran (H/S/I/D/A)"]];
+  siswaCache.forEach((s, i) => rows.push([i + 1, s.nama, s.nis || "", "H"]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Absensi");
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  XLSX.writeFile(wb, "template-absensi-" + (kelas?.nama || "kelas") + ".xlsx");
+});
+
+el("fileAbsensiExcel").addEventListener("change", (e) => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa dulu."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    let matched = 0, unmatched = 0;
+    rows.forEach((row) => {
+      const nis = String(row["NIS"] ?? "").trim();
+      const nama = String(row["Nama"] ?? "").trim().toLowerCase();
+      const kodeRaw = String(row["Kehadiran (H/S/I/D/A)"] ?? row["Kehadiran"] ?? "").trim().toUpperCase();
+      const status = KODE_KEHADIRAN[kodeRaw];
+      if (!status) return;
+      let siswa = null;
+      if (nis) siswa = siswaCache.find((s) => String(s.nis || "").trim() === nis);
+      if (!siswa && nama) siswa = siswaCache.find((s) => s.nama.trim().toLowerCase() === nama);
+      if (!siswa) { unmatched++; return; }
+      const sel = document.querySelector(`[data-absensi-siswa="${siswa.id}"]`);
+      if (sel) { sel.value = status; sel.className = "status-" + status; matched++; }
+    });
+    updateAbsensiSummary();
+    el("absensiStatus").textContent = "Terisi dari Excel: " + matched + " siswa cocok" + (unmatched ? ", " + unmatched + " tidak ditemukan" : "") + ". Periksa lalu klik Simpan Absensi.";
+    e.target.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+async function muatRiwayatAbsensi() {
+  if (!activeKelasId) return;
+  showLoading(true);
+  const snap = await getDocs(query(pertemuanCol(activeKelasId), orderBy("tanggal", "desc")));
+  showLoading(false);
+
+  riwayatAbsensiCache = snap.docs.map((d, idx) => {
+    const data = d.data();
+    const rekap = { hadir: 0, sakit: 0, izin: 0, dispen: 0, alpa: 0 };
+    Object.values(data.absensi || {}).forEach((v) => { if (rekap[v] !== undefined) rekap[v]++; });
+    return {
+      originalNo: idx + 1,
+      tanggal: data.tanggal,
+      materi: data.materi || "-",
+      ...rekap
+    };
+  });
+
+  renderTabelRiwayatAbsensiHTML();
+}
+
+function renderTabelRiwayatAbsensiHTML() {
+  const tbody = el("tbodyRiwayatAbsensi");
+  if (riwayatAbsensiCache.length === 0) { tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Belum ada data absensi.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableRiwayatAbsensi;
+  let list = riwayatAbsensiCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((item) => `
+    <tr>
+      <td class="col-no">${item.originalNo}</td>
+      <td>${item.tanggal}</td>
+      <td>${esc(item.materi)}</td>
+      <td>${item.hadir}</td>
+      <td>${item.sakit}</td>
+      <td>${item.izin}</td>
+      <td>${item.dispen}</td>
+      <td>${item.alpa}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="buka-absensi" data-tgl="${item.tanggal}">Buka</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-absensi" data-tgl="${item.tanggal}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+el("tbodyRiwayatAbsensi").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const tgl = btn.dataset.tgl;
+  if (btn.dataset.action === "buka-absensi") {
+    el("absensiTanggal").value = tgl;
+    await muatAbsensiUntukTanggal();
+    el("absensiStatus").textContent = `Data tanggal ${tgl} dimuat - sunting lalu klik Simpan Absensi.`;
+    el("page-absensi").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (btn.dataset.action === "hapus-absensi") {
+    if (!confirm(`Hapus data absensi tanggal ${tgl}?`)) return;
+    showLoading(true);
+    await deleteDoc(doc(pertemuanCol(activeKelasId), tgl));
+    showLoading(false);
+    muatRiwayatAbsensi();
+  }
+});
+
+function renderTabelNilaiInput() {
+  const tbody = el("tbodyNilaiInput");
+  if (!activeKelasId || siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas dengan siswa terlebih dahulu.</td></tr>'; return; }
+
+  const currentNilaiVals = {};
+  document.querySelectorAll("#tbodyNilaiInput input[data-nilai-siswa]").forEach((inp) => {
+    currentNilaiVals[inp.dataset.nilaiSiswa] = inp.value;
+  });
+
+  const { key, asc } = sortState.tableNilaiInput;
+  let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((s) => {
+    const val = currentNilaiVals[s.id] ?? "";
+    return `
+    <tr>
+      <td class="col-no">${s.originalNo}</td>
+      <td>${esc(s.nama)}</td>
+      <td>${esc(s.nis || "-")}</td>
+      <td><input type="number" min="0" max="100" data-nilai-siswa="${s.id}" value="${val}" placeholder="-"></td>
+    </tr>
+  `;
+  }).join("");
+}
+
+el("btnSimpanNilai").addEventListener("click", async () => {
+  if (!activeKelasId) return;
+  const nama = el("nilaiNama").value.trim();
+  const jenis = el("nilaiJenis").value;
+  const tanggal = el("nilaiTanggal").value;
+  if (!nama || !tanggal) { el("nilaiStatus").textContent = "Nama penilaian dan tanggal wajib diisi."; return; }
+  const nilaiMap = {};
+  document.querySelectorAll("[data-nilai-siswa]").forEach((inp) => { if (inp.value !== "") nilaiMap[inp.dataset.nilaiSiswa] = Number(inp.value); });
+  if (Object.keys(nilaiMap).length === 0) { el("nilaiStatus").textContent = "Isi minimal satu nilai siswa."; return; }
+  showLoading(true);
+  const payload = { jenis, nama, tanggal, nilai: nilaiMap };
+  if (editingNilaiId) await updateDoc(doc(nilaiCol(activeKelasId), editingNilaiId), payload);
+  else await addDoc(nilaiCol(activeKelasId), payload);
+  showLoading(false);
+  el("nilaiStatus").textContent = "Nilai tersimpan.";
+  batalEditNilai();
+  muatRiwayatNilai();
+});
+
+function batalEditNilai() {
+  editingNilaiId = null;
+  el("btnBatalEditNilai").hidden = true;
+  el("nilaiNama").value = "";
+  document.querySelectorAll("[data-nilai-siswa]").forEach((i) => (i.value = ""));
+  el("nilaiTanggal").value = todayStr();
+}
+el("btnBatalEditNilai").addEventListener("click", batalEditNilai);
+el("filterRiwayatJenis").addEventListener("change", muatRiwayatNilai);
+
+el("btnDownloadTemplateNilai").addEventListener("click", () => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa terlebih dahulu."); return; }
+  const rows = [["No", "Nama", "NIS", "Nilai"]];
+  siswaCache.forEach((s, i) => rows.push([i + 1, s.nama, s.nis || "", ""]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Nilai");
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  XLSX.writeFile(wb, "template-nilai-" + (kelas?.nama || "kelas") + ".xlsx");
+});
+
+el("fileNilaiExcel").addEventListener("change", (e) => {
+  if (!activeKelasId || siswaCache.length === 0) { alert("Pilih kelas dengan siswa dulu."); e.target.value = ""; return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    let matched = 0, unmatched = 0;
+    rows.forEach((row) => {
+      const nis = String(row["NIS"] ?? "").trim();
+      const nama = String(row["Nama"] ?? "").trim().toLowerCase();
+      const nilaiRaw = row["Nilai"];
+      if (nilaiRaw === undefined || nilaiRaw === "") return;
+      let siswa = null;
+      if (nis) siswa = siswaCache.find((s) => String(s.nis || "").trim() === nis);
+      if (!siswa && nama) siswa = siswaCache.find((s) => s.nama.trim().toLowerCase() === nama);
+      if (!siswa) { unmatched++; return; }
+      const inp = document.querySelector(`[data-nilai-siswa="${siswa.id}"]`);
+      if (inp) { inp.value = Number(nilaiRaw); matched++; }
+    });
+    el("nilaiStatus").textContent = "Terisi dari Excel: " + matched + " siswa cocok" + (unmatched ? ", " + unmatched + " tidak ditemukan" : "") + ". Lengkapi Jenis/Nama/Tanggal lalu klik Simpan Nilai.";
+    e.target.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+async function muatRiwayatNilai() {
+  if (!activeKelasId) return;
+  showLoading(true);
+  const snap = await getDocs(query(nilaiCol(activeKelasId), orderBy("tanggal", "desc")));
+  showLoading(false);
+  const filterJenis = el("filterRiwayatJenis").value;
+  let list = snap.docs.map((d, idx) => {
+    const n = d.data();
+    const nilaiValues = Object.values(n.nilai || {});
+    const avgNum = nilaiValues.length ? (nilaiValues.reduce((a, b) => a + b, 0) / nilaiValues.length) : null;
+    return {
+      id: d.id,
+      originalNo: idx + 1,
+      nama: n.nama,
+      jenis: n.jenis,
+      tanggal: n.tanggal,
+      nilai: n.nilai,
+      avg: avgNum != null ? Number(avgNum.toFixed(1)) : -1
+    };
+  });
+
+  if (filterJenis) list = list.filter((n) => n.jenis === filterJenis);
+  riwayatNilaiCache = list;
+  renderTabelRiwayatNilaiHTML();
+}
+
+function renderTabelRiwayatNilaiHTML() {
+  const tbody = el("tbodyRiwayatNilai");
+  if (riwayatNilaiCache.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Belum ada data nilai.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableRiwayatNilai;
+  let list = riwayatNilaiCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((n) => `
+    <tr>
+      <td class="col-no">${n.originalNo}</td>
+      <td>${esc(n.nama)}</td>
+      <td><span class="status-badge muted">${JENIS_LABEL[n.jenis] || n.jenis}</span></td>
+      <td>${n.tanggal}</td>
+      <td>${n.avg >= 0 ? n.avg.toFixed(1) : "-"}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="edit-nilai" data-id="${n.id}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-nilai" data-id="${n.id}">Hapus</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+el("tbodyRiwayatNilai").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  if (btn.dataset.action === "edit-nilai") editNilai(btn.dataset.id, riwayatNilaiCache);
+  if (btn.dataset.action === "hapus-nilai") hapusNilai(btn.dataset.id);
+});
+
+function editNilai(nilaiId, list) {
+  const n = list.find((x) => x.id === nilaiId);
+  if (!n) return;
+  editingNilaiId = nilaiId;
+  el("nilaiJenis").value = n.jenis;
+  el("nilaiNama").value = n.nama;
+  el("nilaiTanggal").value = n.tanggal;
+  document.querySelectorAll("[data-nilai-siswa]").forEach((inp) => { inp.value = n.nilai?.[inp.dataset.nilaiSiswa] ?? ""; });
+  el("btnBatalEditNilai").hidden = false;
+  el("page-nilai").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function hapusNilai(nilaiId) {
+  if (!confirm("Hapus data penilaian ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(nilaiCol(activeKelasId), nilaiId));
+  showLoading(false);
+  if (editingNilaiId === nilaiId) batalEditNilai();
+  muatRiwayatNilai();
+}
+
+function renderCatatanSiswaSelect() {
+  const sel = el("catatanSiswaSelect");
+  sel.innerHTML = '<option value="">-- Pilih siswa --</option>' + siswaCache.map((s) => `<option value="${s.id}">${esc(s.nama)}</option>`).join("");
+  el("catatanForm").hidden = true;
+  el("catatanEmptyHint").hidden = false;
+}
+
+el("catatanSiswaSelect").addEventListener("change", async () => {
+  const siswaId = el("catatanSiswaSelect").value;
+  if (!siswaId) { el("catatanForm").hidden = true; el("catatanEmptyHint").hidden = false; return; }
+  el("catatanForm").hidden = false;
+  el("catatanEmptyHint").hidden = true;
+  el("catatanTanggal").value = todayStr();
+  el("catatanIsi").value = "";
+  el("catatanStatus").textContent = "";
+  muatCatatan(siswaId);
+});
+
+async function muatCatatan(siswaId) {
+  showLoading(true);
+  const snap = await getDocs(query(catatanCol(activeKelasId, siswaId), orderBy("tanggal", "desc")));
+  showLoading(false);
+
+  catatanCache = snap.docs.map((d, idx) => ({
+    id: d.id,
+    originalNo: idx + 1,
+    ...d.data()
+  }));
+
+  renderTabelCatatanHTML();
+}
+
+function renderTabelCatatanHTML() {
+  const tbody = el("tbodyCatatan");
+  if (catatanCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada catatan.</td></tr>'; return; }
+
+  const { key, asc } = sortState.tableCatatan;
+  let list = catatanCache;
+  if (key) {
+    list = sortDataArray(list, key, asc, (item, k) => k === 'no' ? item.originalNo : item[k]);
+  }
+
+  tbody.innerHTML = list.map((data) => `
+    <tr>
+      <td class="col-no">${data.originalNo}</td>
+      <td>${data.tanggal}</td>
+      <td>${esc(data.isi)}</td>
+      <td><button class="btn btn-sm btn-danger" data-action="hapus-catatan" data-id="${data.id}">Hapus</button></td>
+    </tr>
+  `).join("");
+}
+
+el("tbodyCatatan").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action='hapus-catatan']");
+  if (!btn) return;
+  const siswaId = el("catatanSiswaSelect").value;
+  if (!confirm("Hapus catatan ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(catatanCol(activeKelasId, siswaId), btn.dataset.id));
+  showLoading(false);
+  muatCatatan(siswaId);
+});
+
+el("btnTambahCatatan").addEventListener("click", async () => {
+  const siswaId = el("catatanSiswaSelect").value;
+  const tanggal = el("catatanTanggal").value;
+  const isi = el("catatanIsi").value.trim();
+  if (!siswaId) return;
+  if (!tanggal || !isi) { el("catatanStatus").textContent = "Tanggal dan isi catatan wajib diisi."; return; }
+  showLoading(true);
+  await addDoc(catatanCol(activeKelasId, siswaId), { tanggal, isi });
+  showLoading(false);
+  el("catatanIsi").value = "";
+  el("catatanStatus").textContent = "Catatan tersimpan.";
+  muatCatatan(siswaId);
+});
+
+// ================================================
+// MATERI - PERPUSTAKAAN (Mapel > Bab)
+// Sumber: upload berkas ke Cloudinary, atau tempel link (Drive/Canva/dll)
+// ================================================
+
+el("materiSumber").addEventListener("change", () => {
+  const isLink = el("materiSumber").value === "link";
+  el("materiUploadGroup").style.display = isLink ? "none" : "block";
+  el("materiLinkGroup").style.display = isLink ? "block" : "none";
+});
+
+el("btnUploadMateri").addEventListener("click", async () => {
+  const mapel = el("materiMapel").value.trim();
+  const bab = el("materiBab").value.trim();
+  const judul = el("materiJudul").value.trim();
+  const sumber = el("materiSumber").value;
+
+  if (!mapel || !bab || !judul) {
+    el("materiStatus").textContent = "Mata Pelajaran, Bab, dan Judul wajib diisi.";
+    return;
+  }
+
+  showLoading(true);
+  try {
+    let url = "";
+    let mimeType = "";
+
+    if (sumber === "link") {
+      url = el("materiLinkUrl").value.trim();
+      if (!url) { showLoading(false); el("materiStatus").textContent = "Masukkan link materinya dulu."; return; }
+      if (url.includes("canva.link")) {
+        showLoading(false);
+        el("materiStatus").textContent = "Link Canva pendek (canva.link) tidak bisa dipakai untuk pratinjau/presentasi. Gunakan link penuh dari Share > Copy link (format canva.com/design/.../view).";
+        return;
+      }
+    } else {
+      const file = el("fileMateri").files[0];
+      if (!file) { showLoading(false); el("materiStatus").textContent = "Pilih berkas dulu."; return; }
+      el("materiStatus").textContent = "Mengunggah berkas ke Cloudinary...";
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("Gagal mengunggah file ke Cloudinary.");
+      const data = await res.json();
+      url = data.secure_url;
+      mimeType = file.type || (file.name.endsWith(".pdf") ? "application/pdf" : "application/vnd.ms-powerpoint");
+    }
+
+    await addDoc(materiCol(), {
+      mapel, bab, judul, sumber, url, mimeType,
+      dibuat: new Date().toISOString()
+    });
+
+    el("fileMateri").value = "";
+    el("materiLinkUrl").value = "";
+    el("materiJudul").value = "";
+    el("materiStatus").textContent = "Materi berhasil disimpan.";
+
+    materiSelMapel = mapel;
+    materiSelBab = bab;
+    muatMateri();
+  } catch (err) {
+    console.error(err);
+    el("materiStatus").textContent = "Gagal menyimpan materi: " + err.message;
+  }
+  showLoading(false);
+});
+
+async function muatMateri() {
+  if (!uid) return;
+  showLoading(true);
+  const snap = await getDocs(query(materiCol(), orderBy("mapel")));
+  showLoading(false);
+  materiAll = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  updateMateriDatalists();
+  renderMateriLibrary();
+}
+
+function updateMateriDatalists() {
+  const mapels = [...new Set(materiAll.map((m) => m.mapel))];
+  el("daftarMapel").innerHTML = mapels.map((m) => `<option value="${esc(m)}">`).join("");
+  const relevan = materiSelMapel ? materiAll.filter((m) => m.mapel === materiSelMapel) : materiAll;
+  const babs = [...new Set(relevan.map((m) => m.bab))];
+  el("daftarBab").innerHTML = babs.map((b) => `<option value="${esc(b)}">`).join("");
+}
+
+function renderMateriLibrary() {
+  const container = el("materiListContainer");
+  const breadcrumb = el("materiBreadcrumb");
+
+  if (materiAll.length === 0) {
+    breadcrumb.innerHTML = "";
+    container.innerHTML = '<p class="hint">Belum ada materi.</p>';
+    return;
+  }
+
+  if (!materiSelMapel) {
+    breadcrumb.innerHTML = "";
+    const counts = {};
+    materiAll.forEach((m) => { counts[m.mapel] = (counts[m.mapel] || 0) + 1; });
+    container.innerHTML = '<div class="materi-grid">' + Object.entries(counts).map(([nama, count]) => `
+      <button type="button" class="materi-card" data-pilih-mapel="${esc(nama)}">
+        <p class="materi-card-title">${esc(nama)}</p>
+        <p class="materi-card-count">${count} materi</p>
+      </button>
+    `).join("") + "</div>";
+    return;
+  }
+
+  if (!materiSelBab) {
+    breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><strong>${esc(materiSelMapel)}</strong>`;
+    const items = materiAll.filter((m) => m.mapel === materiSelMapel);
+    const counts = {};
+    items.forEach((m) => { const key = m.bab || "(Tanpa Bab)"; counts[key] = (counts[key] || 0) + 1; });
+    container.innerHTML = '<div class="materi-grid">' + Object.entries(counts).map(([nama, count]) => `
+      <button type="button" class="materi-card" data-pilih-bab="${esc(nama)}">
+        <p class="materi-card-title">${esc(nama)}</p>
+        <p class="materi-card-count">${count} materi</p>
+      </button>
+    `).join("") + "</div>";
+    return;
+  }
+
+  breadcrumb.innerHTML = `<button type="button" data-breadcrumb="root">Semua Mapel</button><span class="sep">/</span><button type="button" data-breadcrumb="mapel">${esc(materiSelMapel)}</button><span class="sep">/</span><strong>${esc(materiSelBab)}</strong>`;
+  let items = materiAll.filter((m) => m.mapel === materiSelMapel && (m.bab || "(Tanpa Bab)") === materiSelBab);
+
+  const { key, asc } = sortState.tableMateri;
+  if (key) {
+    items = sortDataArray(items, key, asc, (item, k) => {
+      if (k === 'tipe') {
+        const isLink = item.sumber === "link";
+        const isPdf = !isLink && ((item.mimeType || "").includes("pdf") || (item.url || "").toLowerCase().includes(".pdf"));
+        return isLink ? "Link" : (isPdf ? "PDF" : "PPT");
+      }
+      return item[k];
+    });
+  }
+
+  container.innerHTML = `
+    <div class="table-container">
+      <table id="tableMateri">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="judul"><div class="th-content"><svg class="th-icon"><use href="#icon-file"/></svg>Judul<span class="sort-indicator">${key === 'judul' ? (asc ? ' ↑' : ' ↓') : ' ↕'}</span></div></th>
+            <th class="sortable" data-sort="tipe"><div class="th-content"><svg class="th-icon"><use href="#icon-tag"/></svg>Tipe<span class="sort-indicator">${key === 'tipe' ? (asc ? ' ↑' : ' ↓') : ' ↕'}</span></div></th>
+            <th><div class="th-content"><svg class="th-icon"><use href="#icon-cog"/></svg>Aksi</div></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((m) => {
+            const isLink = m.sumber === "link";
+            const isPdf = !isLink && ((m.mimeType || "").includes("pdf") || (m.url || "").toLowerCase().includes(".pdf"));
+            const tipeLabel = isLink ? "Link" : (isPdf ? "PDF" : "PPT");
+            return `
+            <tr>
+              <td>${esc(m.judul)}</td>
+              <td><span class="status-badge muted">${tipeLabel}</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline" data-action="preview-materi" data-id="${m.id}">Pratinjau / Presentasi</button>
+                <button class="btn btn-sm btn-secondary" data-action="edit-materi" data-id="${m.id}">Edit</button>
+                <button class="btn btn-sm btn-danger" data-action="hapus-materi" data-docid="${m.id}">Hapus</button>
+              </td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const thMateriList = el("tableMateri")?.querySelectorAll("th.sortable[data-sort]");
+  thMateriList?.forEach((th) => {
+    th.addEventListener("click", () => {
+      const k = th.dataset.sort;
+      if (sortState.tableMateri.key === k) {
+        sortState.tableMateri.asc = !sortState.tableMateri.asc;
+      } else {
+        sortState.tableMateri.key = k;
+        sortState.tableMateri.asc = true;
+      }
+      renderMateriLibrary();
+    });
+  });
+}
+
+el("materiListContainer").addEventListener("click", (e) => {
+  const mapelBtn = e.target.closest("[data-pilih-mapel]");
+  if (mapelBtn) {
+    materiSelMapel = mapelBtn.dataset.pilihMapel;
+    materiSelBab = null;
+    updateMateriDatalists();
+    renderMateriLibrary();
+    return;
+  }
+  const babBtn = e.target.closest("[data-pilih-bab]");
+  if (babBtn) {
+    materiSelBab = babBtn.dataset.pilihBab;
+    renderMateriLibrary();
+    return;
+  }
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+
+  if (btn.dataset.action === "preview-materi") {
+    const m = materiAll.find((x) => x.id === btn.dataset.id);
+    if (!m) return;
+    const embedUrl = buildEmbedUrl(m);
+    const isShortCanva = (m.url || "").includes("canva.link");
+
+    openModal(`
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0;">${esc(m.judul)}</h3>
+        <button type="button" class="btn btn-sm btn-success" id="btnFullscreenModal">Mode Presentasi</button>
+      </div>
+      ${isShortCanva ? `<p class="hint" style="color:var(--danger);">Materi ini memakai link Canva pendek (canva.link) sehingga tidak bisa dipratinjau di sini. Edit materi ini dan ganti dengan link penuh dari Share &gt; Copy link di Canva.</p>` : ""}
+      <iframe id="previewIframe" src="${embedUrl}" style="width:100%; height:68vh; border:none; border-radius:8px; background:#f1f5f9;" allow="fullscreen" allowfullscreen></iframe>
+      <p style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
+        <a href="${esc(m.url)}" target="_blank" rel="noopener">Buka di tab baru / Link Asli</a>
+      </p>
+    `, true);
+
+    const iframeEl = document.getElementById("previewIframe");
+    const fullscreenBtn = document.getElementById("btnFullscreenModal");
+
+    const enterFullscreen = () => {
+      const req = iframeEl.requestFullscreen || iframeEl.webkitRequestFullscreen || iframeEl.msRequestFullscreen;
+      if (req) {
+        const result = req.call(iframeEl);
+        if (result && result.catch) result.catch(() => { /* browser blocked auto-fullscreen */ });
+      }
+    };
+
+    if (!isShortCanva) enterFullscreen();
+    fullscreenBtn.addEventListener("click", enterFullscreen);
+  }
+
+  if (btn.dataset.action === "edit-materi") {
+    const m = materiAll.find((x) => x.id === btn.dataset.id);
+    if (!m) return;
+    showEditMateriForm(m);
+  }
+
+  if (btn.dataset.action === "hapus-materi") hapusMateri(btn.dataset.docid);
+});
+
+function showEditMateriForm(m) {
+  const isLink = m.sumber === "link";
+  openModal(`
+    <h3>Edit Materi</h3>
+    <form id="formEditMateri">
+      <div class="form-group">
+        <label>Mata Pelajaran</label>
+        <input type="text" id="editMateriMapel" value="${esc(m.mapel)}" required>
+      </div>
+      <div class="form-group">
+        <label>Bab</label>
+        <input type="text" id="editMateriBab" value="${esc(m.bab)}" required>
+      </div>
+      <div class="form-group">
+        <label>Judul</label>
+        <input type="text" id="editMateriJudul" value="${esc(m.judul)}" required>
+      </div>
+      <div class="form-group">
+        <label>Sumber Materi</label>
+        <select id="editMateriSumber">
+          <option value="upload" ${!isLink ? 'selected' : ''}>Upload Berkas Baru (PDF/PPT)</option>
+          <option value="link" ${isLink ? 'selected' : ''}>Tempel Link Baru (Drive/Canva/dll)</option>
+        </select>
+      </div>
+      <div class="form-group" id="editMateriUploadGroup" style="display:${!isLink ? 'block' : 'none'};">
+        <label>Ganti Berkas (Opsional - Biarkan kosong jika tidak diganti)</label>
+        <input type="file" id="editFileMateri" accept=".pdf,.ppt,.pptx">
+      </div>
+      <div class="form-group" id="editMateriLinkGroup" style="display:${isLink ? 'block' : 'none'};">
+        <label>URL Link Materi</label>
+        <input type="text" id="editMateriLinkUrl" value="${isLink ? esc(m.url) : ''}" placeholder="https://www.canva.com/design/.../view">
+        <p class="hint" style="margin-bottom:0;">Khusus Canva: pakai link penuh (canva.com/design/.../view), bukan link pendek canva.link.</p>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+      <p id="editMateriStatus" class="status-text" style="margin-top:10px;"></p>
+    </form>
+  `);
+
+  const selectSumber = document.getElementById("editMateriSumber");
+  selectSumber.addEventListener("change", () => {
+    const isL = selectSumber.value === "link";
+    document.getElementById("editMateriUploadGroup").style.display = isL ? "none" : "block";
+    document.getElementById("editMateriLinkGroup").style.display = isL ? "block" : "none";
+  });
+
+  document.getElementById("formEditMateri").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const mapel = document.getElementById("editMateriMapel").value.trim();
+    const bab = document.getElementById("editMateriBab").value.trim();
+    const judul = document.getElementById("editMateriJudul").value.trim();
+    const sumber = selectSumber.value;
+    const statusEl = document.getElementById("editMateriStatus");
+
+    if (!mapel || !bab || !judul) {
+      statusEl.textContent = "Mapel, Bab, dan Judul wajib diisi.";
+      return;
+    }
+
+    showLoading(true);
+    try {
+      let newUrl = m.url;
+      let newMimeType = m.mimeType || "";
+
+      if (sumber === "link") {
+        const linkInput = document.getElementById("editMateriLinkUrl").value.trim();
+        if (!linkInput) {
+          showLoading(false);
+          statusEl.textContent = "URL Link wajib diisi.";
+          return;
+        }
+        if (linkInput.includes("canva.link")) {
+          showLoading(false);
+          statusEl.textContent = "Link Canva pendek (canva.link) tidak bisa dipakai. Gunakan link penuh dari Share > Copy link.";
+          return;
+        }
+        newUrl = linkInput;
+        newMimeType = "";
+      } else {
+        const fileInput = document.getElementById("editFileMateri").files[0];
+        if (fileInput) {
+          statusEl.textContent = "Mengunggah berkas baru ke Cloudinary...";
+          const formData = new FormData();
+          formData.append("file", fileInput);
+          formData.append("upload_preset", UPLOAD_PRESET);
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+            method: "POST",
+            body: formData
+          });
+          if (!res.ok) throw new Error("Gagal mengunggah file baru.");
+          const data = await res.json();
+          newUrl = data.secure_url;
+          newMimeType = fileInput.type || (fileInput.name.endsWith(".pdf") ? "application/pdf" : "application/vnd.ms-powerpoint");
+        }
+      }
+
+      await updateDoc(doc(materiCol(), m.id), {
+        mapel, bab, judul, sumber, url: newUrl, mimeType: newMimeType
+      });
+
+      showLoading(false);
+      closeModal();
+      materiSelMapel = mapel;
+      materiSelBab = bab;
+      muatMateri();
+    } catch (err) {
+      console.error(err);
+      showLoading(false);
+      statusEl.textContent = "Gagal mengedit materi: " + err.message;
+    }
+  });
+}
+
+el("materiBreadcrumb").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-breadcrumb]");
+  if (!btn) return;
+  if (btn.dataset.breadcrumb === "root") { materiSelMapel = null; materiSelBab = null; }
+  if (btn.dataset.breadcrumb === "mapel") { materiSelBab = null; }
+  updateMateriDatalists();
+  renderMateriLibrary();
+});
+
+async function hapusMateri(docId) {
+  if (!confirm("Hapus materi ini?")) return;
+  showLoading(true);
+  await deleteDoc(doc(materiCol(), docId));
+  showLoading(false);
+  muatMateri();
+}
+
+function buildEmbedUrl(m) {
+  let url = (m.url || "").trim();
+
+  // Handling Canva (link penuh: canva.com/design/{id}/{secret}/view)
+  if (url.includes("canva.com")) {
+    const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)/);
+    if (canvaMatch) {
+      return `https://www.canva.com/design/${canvaMatch[1]}/${canvaMatch[2]}/view?embed`;
+    }
+    if (url.includes("/view")) {
+      return url.split("?")[0] + "?embed";
+    }
+    return url;
+  }
+
+  if (url.includes("canva.link")) {
+    return url;
+  }
+
+  // Handling Google Drive
+  let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+
+  // Handling Google Docs/Slides/Sheets
+  match = url.match(/docs\.google\.com\/(presentation|document|spreadsheets)\/d\/([^/]+)/);
+  if (match) return `https://docs.google.com/${match[1]}/d/${match[2]}/embed`;
+
+  // Handling File Cloudinary / Direct Link (PDF / PPT / PPTX)
+  const lower = url.toLowerCase();
+  const isPdf = m.mimeType?.includes("pdf") || lower.endsWith(".pdf");
+  const isPpt = m.mimeType?.includes("presentation") || m.mimeType?.includes("powerpoint") || lower.endsWith(".ppt") || lower.endsWith(".pptx");
+
+  if (isPdf) {
+    return `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+  }
+
+  if (isPpt) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+  }
+
+  return url;
+}
+
+// ================================================
+// REKAP / EXPORT EXCEL
+// ================================================
+async function fetchRekapKelas(kelasId) {
+  const siswaSnap = await getDocs(query(siswaCol(kelasId), orderBy("nama")));
+  const siswaList = siswaSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const pertemuanSnap = await getDocs(pertemuanCol(kelasId));
+  const absensiRekap = {};
+  siswaList.forEach((s) => { absensiRekap[s.id] = { hadir: 0, sakit: 0, izin: 0, dispen: 0, alpa: 0 }; });
+  pertemuanSnap.docs.forEach((d) => {
+    const data = d.data();
+    Object.entries(data.absensi || {}).forEach(([sid, status]) => {
+      if (absensiRekap[sid] && absensiRekap[sid][status] !== undefined) absensiRekap[sid][status]++;
+    });
+  });
+
+  const nilaiSnap = await getDocs(nilaiCol(kelasId));
+  const nilaiRekap = {};
+  siswaList.forEach((s) => { nilaiRekap[s.id] = { tugas: [], ulangan_harian: [], uts: [], uas: [] }; });
+  nilaiSnap.docs.forEach((d) => {
+    const data = d.data();
+    Object.entries(data.nilai || {}).forEach(([sid, val]) => {
+      if (nilaiRekap[sid] && nilaiRekap[sid][data.jenis]) nilaiRekap[sid][data.jenis].push(val);
+    });
+  });
+
+  const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
+
+  return siswaList.map((s, i) => {
+    const ab = absensiRekap[s.id];
+    const nl = nilaiRekap[s.id];
+    const semua = [...nl.tugas, ...nl.ulangan_harian, ...nl.uts, ...nl.uas];
+    return {
+      no: i + 1, nama: s.nama, nis: s.nis || "",
+      hadir: ab.hadir, sakit: ab.sakit, izin: ab.izin, dispen: ab.dispen, alpa: ab.alpa,
+      rataTugas: avg(nl.tugas), rataUH: avg(nl.ulangan_harian), rataUTS: avg(nl.uts), rataUAS: avg(nl.uas),
+      rataKeseluruhan: avg(semua)
+    };
+  });
+}
+
+function fmt(v) { return v == null ? "-" : v.toFixed(1); }
+
+function rowsToAoa(rows, withKelas) {
+  const header = withKelas
+    ? ["No", "Kelas", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Dispen", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"]
+    : ["No", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Dispen", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"];
+  const body = rows.map((r) => withKelas
+    ? [r.no, r.kelasNama, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.dispen, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]
+    : [r.no, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.dispen, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]);
+  return [header, ...body];
+}
+
+el("btnRekapKelas").addEventListener("click", async () => {
+  if (!activeKelasId) { el("rekapStatus").textContent = "Pilih kelas aktif dulu."; return; }
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  showLoading(true);
+  const rows = await fetchRekapKelas(activeKelasId);
+  showLoading(false);
+  if (rows.length === 0) { el("rekapStatus").textContent = "Kelas ini belum punya siswa."; return; }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+  XLSX.writeFile(wb, `rekap-${kelas.nama}.xlsx`);
+  el("rekapStatus").textContent = `Rekap kelas ${kelas.nama} berhasil diunduh.`;
+});
+
+el("btnRekapSemua").addEventListener("click", async () => {
+  if (kelasCache.length === 0) { el("rekapStatus").textContent = "Belum ada kelas."; return; }
+  showLoading(true);
+  const wb = XLSX.utils.book_new();
+  const combined = [];
+  for (const k of kelasCache) {
+    const rows = await fetchRekapKelas(k.id);
+    rows.forEach((r) => combined.push({ ...r, kelasNama: k.nama }));
+    const sheetName = k.nama.replace(/[\\/?*[\]:]/g, "").substring(0, 31) || "Kelas";
+    const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+  const ringkasan = combined.map((r, i) => ({ ...r, no: i + 1 }));
+  const wsRingkasan = XLSX.utils.aoa_to_sheet(rowsToAoa(ringkasan, true));
+  XLSX.utils.book_append_sheet(wb, wsRingkasan, "Ringkasan Semua Kelas");
+  const order = ["Ringkasan Semua Kelas", ...wb.SheetNames.filter((n) => n !== "Ringkasan Semua Kelas")];
+  wb.SheetNames = order;
+  showLoading(false);
+  XLSX.writeFile(wb, "rekap-semua-kelas.xlsx");
+  el("rekapStatus").textContent = "Rekap semua kelas berhasil diunduh.";
+});
+</script>
+ </body>
+</html>
