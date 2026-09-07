@@ -590,7 +590,7 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+  getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
@@ -613,7 +613,7 @@ const UPLOAD_PRESET = "di6fkvi5";
 
 // Pengaturan AI Assistant (Gemini via Cloudflare Worker proxy)
 // Ganti dengan URL Worker kamu setelah deploy (lihat panduan pemasangan).
-const AI_WORKER_URL = "https://jurnal-guru-ai.raka369f.workers.dev/";
+const AI_WORKER_URL = "https://GANTI-DENGAN-URL-WORKER-KAMU.workers.dev";
 
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
@@ -722,10 +722,13 @@ function setupTableSortListeners() {
 
 el("loginBtn").addEventListener("click", () => {
   el("loginError").textContent = "";
-  signInWithPopup(auth, provider).catch((err) => {
-    console.error(err);
-    el("loginError").textContent = "Login gagal. Coba lagi.";
-  });
+  signInWithRedirect(auth, provider);
+});
+
+// Tangkap error dari alur redirect (kalau ada) saat halaman dimuat ulang setelah login
+getRedirectResult(auth).catch((err) => {
+  console.error(err);
+  el("loginError").textContent = "Login gagal: " + (err.message || "Coba lagi.");
 });
 
 el("logoutBtn").addEventListener("click", () => signOut(auth));
@@ -2046,6 +2049,4 @@ el("materiListContainer").addEventListener("click", (e) => {
     const isShortCanva = (m.url || "").includes("canva.link");
 
     openModal(`
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 style="margin:0;">${esc(m.judul)}</h3>
-        <button type="button" class="bt
+      <div style="display:flex; justify-
