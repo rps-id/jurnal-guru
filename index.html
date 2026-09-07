@@ -160,6 +160,52 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
   .content { max-height: none; padding: 18px; }
   .form-row { flex-direction: column; gap: 0; }
 }
+
+/* ===== AI Chat Assistant (floating) ===== */
+.ai-chat-fab {
+  position: fixed; right: 22px; bottom: 22px; z-index: 9500;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white; box-shadow: 0 8px 20px rgba(2,132,199,0.4);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.ai-chat-fab svg { width: 26px; height: 26px; fill: currentColor; }
+.ai-chat-panel {
+  position: fixed; right: 22px; bottom: 90px; z-index: 9500;
+  width: 360px; max-width: calc(100vw - 32px); height: 520px; max-height: calc(100vh - 130px);
+  background: var(--surface); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+  display: none; flex-direction: column; overflow: hidden; border: 1px solid #e2e8f0;
+}
+.ai-chat-panel.open { display: flex; }
+.ai-chat-header {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark)); color: white;
+  padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.9rem;
+}
+.ai-chat-close { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; line-height: 1; }
+.ai-chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; }
+.ai-chat-msg { max-width: 88%; padding: 9px 12px; border-radius: 12px; font-size: 0.84rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.ai-chat-msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 3px; }
+.ai-chat-msg.model { align-self: flex-start; background: white; border: 1px solid #e2e8f0; color: var(--text-main); border-bottom-left-radius: 3px; }
+.ai-chat-msg.system { align-self: center; background: #fef3c7; color: #92400e; font-size: 0.78rem; }
+.ai-chat-thumb { max-width: 160px; border-radius: 8px; margin-bottom: 6px; display: block; }
+.ai-chat-action-card { align-self: flex-start; max-width: 92%; background: white; border: 1.5px dashed var(--primary); border-radius: 10px; padding: 10px 12px; font-size: 0.8rem; }
+.ai-chat-action-card h5 { font-size: 0.82rem; margin-bottom: 6px; color: var(--primary-dark); }
+.ai-chat-action-card ul { list-style: none; max-height: 140px; overflow-y: auto; margin-bottom: 8px; }
+.ai-chat-action-card li { padding: 3px 0; border-bottom: 1px dashed #e2e8f0; }
+.ai-chat-action-actions { display: flex; gap: 8px; }
+.ai-chat-input-row { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-top: 1px solid #e2e8f0; background: white; }
+.ai-chat-input-row input[type="text"] { flex: 1; padding: 8px 10px; font-size: 0.84rem; }
+.ai-chat-attach { cursor: pointer; font-size: 1.2rem; padding: 4px 6px; border-radius: 8px; }
+.ai-chat-attach:hover { background: #f1f5f9; }
+.ai-chat-image-preview { padding: 0 12px 10px; display: flex; align-items: center; gap: 8px; }
+.ai-chat-image-preview img { height: 46px; border-radius: 6px; }
+.ai-chat-image-preview button { font-size: 0.75rem; }
+.ai-chat-typing { font-size: 0.78rem; color: var(--text-muted); align-self: flex-start; }
+
+@media (max-width: 480px) {
+  .ai-chat-panel { right: 12px; left: 12px; width: auto; bottom: 84px; }
+  .ai-chat-fab { right: 16px; bottom: 16px; }
+}
 </style>
  </head>
  <body>
@@ -524,6 +570,23 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
   </div>
   <div class="loading-overlay" id="loadingOverlay">Memuat...</div>
 
+  <button type="button" class="ai-chat-fab" id="btnAiChatToggle" title="Asisten AI">
+   <svg viewBox="0 0 20 20"><use href="#icon-chat"/></svg>
+  </button>
+  <div class="ai-chat-panel" id="aiChatPanel">
+   <div class="ai-chat-header">
+    <span>🤖 Asisten AI Jurnal Guru</span>
+    <button type="button" class="ai-chat-close" id="btnAiChatClose">&times;</button>
+   </div>
+   <div class="ai-chat-messages" id="aiChatMessages"></div>
+   <div class="ai-chat-image-preview" id="aiChatImagePreview" hidden></div>
+   <div class="ai-chat-input-row">
+    <label class="ai-chat-attach" title="Lampirkan foto">📎<input type="file" id="aiChatFileInput" accept="image/*" hidden></label>
+    <input type="text" id="aiChatTextInput" placeholder="Tanya atau minta bantuan...">
+    <button type="button" class="btn btn-sm" id="aiChatSendBtn">Kirim</button>
+   </div>
+  </div>
+
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -550,7 +613,7 @@ const UPLOAD_PRESET = "di6fkvi5";
 
 // Pengaturan AI Assistant (Gemini via Cloudflare Worker proxy)
 // Ganti dengan URL Worker kamu setelah deploy (lihat panduan pemasangan).
-const AI_WORKER_URL = "https://jurnal-guru-ai.raka369f.workers.dev";
+const AI_WORKER_URL = "https://jurnal-guru-ai.raka369f.workers.dev/";
 
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
@@ -1170,6 +1233,287 @@ el("fileAbsensiFoto").addEventListener("change", async (e) => {
   e.target.value = "";
 });
 
+// ================================================
+// AI CHAT ASSISTANT (floating) - bisa Q&A + eksekusi aksi dengan konfirmasi
+// ================================================
+let aiChatHistory = []; // {role: 'user'|'model', text}
+let aiChatAttachedFile = null;
+
+el("btnAiChatToggle").addEventListener("click", () => {
+  el("aiChatPanel").classList.add("open");
+  if (el("aiChatMessages").children.length === 0) {
+    appendChatMsg("model", "Halo! Saya bisa bantu isi absensi/nilai dari foto atau perintah teks, tambah catatan siswa, tambah siswa, atau tambah kelas. Setiap perubahan data akan saya tampilkan dulu untuk kamu konfirmasi sebelum disimpan. Kelas aktif sekarang: " + (kelasCache.find(k => k.id === activeKelasId)?.nama || "(belum dipilih)"));
+  }
+  el("aiChatTextInput").focus();
+});
+el("btnAiChatClose").addEventListener("click", () => el("aiChatPanel").classList.remove("open"));
+
+el("aiChatFileInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  aiChatAttachedFile = file;
+  const base64 = await fileToBase64(file);
+  const preview = el("aiChatImagePreview");
+  preview.hidden = false;
+  preview.innerHTML = `<img src="data:${file.type};base64,${base64}"><span>${esc(file.name)}</span><button type="button" id="aiChatRemoveAttach" class="btn btn-secondary btn-sm">Hapus</button>`;
+  document.getElementById("aiChatRemoveAttach").addEventListener("click", () => {
+    aiChatAttachedFile = null;
+    preview.hidden = true;
+    preview.innerHTML = "";
+    el("aiChatFileInput").value = "";
+  });
+});
+
+function appendChatMsg(role, text, imageDataUrl) {
+  const wrap = el("aiChatMessages");
+  const div = document.createElement("div");
+  div.className = "ai-chat-msg " + role;
+  if (imageDataUrl) {
+    const img = document.createElement("img");
+    img.className = "ai-chat-thumb";
+    img.src = imageDataUrl;
+    div.appendChild(img);
+  }
+  const span = document.createElement("div");
+  span.textContent = text;
+  div.appendChild(span);
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function appendChatSystem(text) {
+  const wrap = el("aiChatMessages");
+  const div = document.createElement("div");
+  div.className = "ai-chat-msg system";
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+async function kirimPesanChatAi() {
+  const teks = el("aiChatTextInput").value.trim();
+  if (!teks && !aiChatAttachedFile) return;
+  if (AI_WORKER_URL.includes("GANTI-DENGAN-URL-WORKER-KAMU")) {
+    appendChatSystem("Fitur AI belum aktif: isi dulu AI_WORKER_URL di kode dengan URL Cloudflare Worker kamu.");
+    return;
+  }
+
+  let imageDataUrl = null, base64 = null, mimeType = null;
+  if (aiChatAttachedFile) {
+    base64 = await fileToBase64(aiChatAttachedFile);
+    mimeType = aiChatAttachedFile.type || "image/jpeg";
+    imageDataUrl = `data:${mimeType};base64,${base64}`;
+  }
+
+  appendChatMsg("user", teks || "(kirim foto)", imageDataUrl);
+  el("aiChatTextInput").value = "";
+  const fileToSend = aiChatAttachedFile;
+  aiChatAttachedFile = null;
+  el("aiChatImagePreview").hidden = true;
+  el("aiChatImagePreview").innerHTML = "";
+  el("aiChatFileInput").value = "";
+
+  const typingEl = document.createElement("div");
+  typingEl.className = "ai-chat-typing";
+  typingEl.textContent = "Asisten sedang mengetik...";
+  el("aiChatMessages").appendChild(typingEl);
+  el("aiChatMessages").scrollTop = el("aiChatMessages").scrollHeight;
+
+  const kelas = kelasCache.find((k) => k.id === activeKelasId);
+  const context = {
+    tanggalHariIni: todayStr(),
+    kelasAktif: kelas ? { nama: kelas.nama, mapel: kelas.mapel || "" } : null,
+    siswaList: siswaCache.map((s) => ({ nama: s.nama, nis: s.nis || "" })),
+    daftarKelas: kelasCache.map((k) => ({ nama: k.nama, mapel: k.mapel || "" }))
+  };
+
+  try {
+    const res = await fetch(AI_WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "chat",
+        message: teks,
+        image: base64,
+        mimeType,
+        context,
+        history: aiChatHistory.slice(-8)
+      })
+    });
+    typingEl.remove();
+    if (!res.ok) throw new Error("Worker AI merespons error: " + res.status);
+    const data = await res.json();
+
+    aiChatHistory.push({ role: "user", text: teks || "(mengirim foto)" });
+    aiChatHistory.push({ role: "model", text: data.reply || "" });
+
+    appendChatMsg("model", data.reply || "(tidak ada balasan)");
+
+    if (data.action && data.action.type) {
+      renderActionCard(data.action);
+    }
+  } catch (err) {
+    typingEl.remove();
+    console.error(err);
+    appendChatSystem("Terjadi kesalahan: " + err.message);
+  }
+}
+
+el("aiChatSendBtn").addEventListener("click", kirimPesanChatAi);
+el("aiChatTextInput").addEventListener("keydown", (e) => { if (e.key === "Enter") kirimPesanChatAi(); });
+
+function renderActionCard(action) {
+  const wrap = el("aiChatMessages");
+  const card = document.createElement("div");
+  card.className = "ai-chat-action-card";
+
+  const html = buildActionPreviewHtml(action);
+  card.innerHTML = html.preview + `
+    <div class="ai-chat-action-actions">
+      <button type="button" class="btn btn-success btn-sm" data-confirm-action>Konfirmasi &amp; Simpan</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-cancel-action>Batal</button>
+    </div>
+  `;
+  wrap.appendChild(card);
+  wrap.scrollTop = wrap.scrollHeight;
+
+  card.querySelector("[data-cancel-action]").addEventListener("click", () => {
+    card.innerHTML = "<p class='hint' style='margin:0;'>Dibatalkan.</p>";
+  });
+  card.querySelector("[data-confirm-action]").addEventListener("click", async () => {
+    card.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    try {
+      const resultMsg = await eksekusiChatAction(action);
+      card.innerHTML = `<p style="margin:0; color: var(--success); font-weight:600;">✓ Tersimpan. ${esc(resultMsg)}</p>`;
+    } catch (err) {
+      console.error(err);
+      card.innerHTML = `<p style="margin:0; color: var(--danger); font-weight:600;">Gagal menyimpan: ${esc(err.message)}</p>`;
+    }
+  });
+}
+
+// Membangun pratinjau HTML untuk tiap tipe aksi, termasuk menandai nama yang tidak cocok
+function buildActionPreviewHtml(action) {
+  const type = action.type;
+  const p = action.payload || {};
+
+  if (type === "isi_absensi") {
+    const rows = (p.kehadiran || []).map((it) => {
+      const s = cocokkanSiswaByNama(it.nama);
+      return { nama: it.nama, status: it.status, match: !!s };
+    });
+    return { preview: `
+      <h5>Isi Absensi - ${esc(p.tanggal || "-")}${p.materi ? " (" + esc(p.materi) + ")" : ""}</h5>
+      <ul>${rows.map((r) => `<li>${r.match ? "" : "⚠️ "}<b>${esc(r.nama)}</b> - ${esc(STATUS_LABEL[r.status] || r.status)}${r.match ? "" : " (nama tidak ditemukan di kelas aktif)"}</li>`).join("")}</ul>
+      <p class="hint" style="margin:0 0 6px;">Kelas aktif: ${esc(kelasCache.find(k => k.id === activeKelasId)?.nama || "-")}. Siswa yang tidak dilist di atas tidak akan diubah.</p>
+    ` };
+  }
+
+  if (type === "isi_nilai") {
+    const rows = (p.nilai || []).map((it) => {
+      const s = cocokkanSiswaByNama(it.nama);
+      return { nama: it.nama, nilai: it.nilai, match: !!s };
+    });
+    return { preview: `
+      <h5>Isi Nilai - ${esc(JENIS_LABEL[p.jenis] || p.jenis || "-")} "${esc(p.namaPenilaian || "-")}" (${esc(p.tanggal || "-")})</h5>
+      <ul>${rows.map((r) => `<li>${r.match ? "" : "⚠️ "}<b>${esc(r.nama)}</b> - ${esc(String(r.nilai))}${r.match ? "" : " (nama tidak ditemukan)"}</li>`).join("")}</ul>
+    ` };
+  }
+
+  if (type === "tambah_catatan") {
+    const s = cocokkanSiswaByNama(p.siswa);
+    return { preview: `
+      <h5>Tambah Catatan Siswa</h5>
+      <ul><li>${s ? "" : "⚠️ "}<b>${esc(p.siswa || "-")}</b>${s ? "" : " (nama tidak ditemukan)"}</li>
+      <li>Tanggal: ${esc(p.tanggal || "-")}</li>
+      <li>Isi: ${esc(p.isi || "-")}</li></ul>
+    ` };
+  }
+
+  if (type === "tambah_siswa") {
+    const rows = p.siswa || [];
+    return { preview: `
+      <h5>Tambah Siswa Baru ke Kelas Aktif</h5>
+      <ul>${rows.map((r) => `<li><b>${esc(r.nama)}</b>${r.nis ? " - NIS " + esc(r.nis) : ""}</li>`).join("")}</ul>
+    ` };
+  }
+
+  if (type === "tambah_kelas") {
+    return { preview: `
+      <h5>Tambah Kelas Baru</h5>
+      <ul><li>Nama: <b>${esc(p.nama || "-")}</b></li><li>Mapel: ${esc(p.mapel || "-")}</li></ul>
+    ` };
+  }
+
+  return { preview: `<p class="hint">Aksi tidak dikenali: ${esc(type)}</p>` };
+}
+
+async function eksekusiChatAction(action) {
+  const type = action.type;
+  const p = action.payload || {};
+
+  if (["isi_absensi", "isi_nilai", "tambah_catatan", "tambah_siswa"].includes(type) && !activeKelasId) {
+    throw new Error("Pilih kelas aktif terlebih dahulu.");
+  }
+
+  if (type === "isi_absensi") {
+    if (!p.tanggal) throw new Error("Tanggal tidak valid.");
+    const absensi = {};
+    (p.kehadiran || []).forEach((it) => {
+      const s = cocokkanSiswaByNama(it.nama);
+      const status = String(it.status || "").toLowerCase();
+      if (s && ["hadir", "sakit", "izin", "dispen", "alpa"].includes(status)) absensi[s.id] = status;
+    });
+    if (Object.keys(absensi).length === 0) throw new Error("Tidak ada nama yang cocok dengan siswa di kelas aktif.");
+    await setDoc(doc(pertemuanCol(activeKelasId), p.tanggal), { tanggal: p.tanggal, materi: p.materi || "", absensi }, { merge: true });
+    muatRiwayatAbsensi();
+    if (el("absensiTanggal").value === p.tanggal) muatAbsensiUntukTanggal();
+    return `${Object.keys(absensi).length} data kehadiran disimpan untuk tanggal ${p.tanggal}.`;
+  }
+
+  if (type === "isi_nilai") {
+    if (!p.namaPenilaian || !p.tanggal) throw new Error("Nama penilaian / tanggal tidak lengkap.");
+    const nilaiMap = {};
+    (p.nilai || []).forEach((it) => {
+      const s = cocokkanSiswaByNama(it.nama);
+      if (s && it.nilai !== undefined && it.nilai !== null && it.nilai !== "") nilaiMap[s.id] = Number(it.nilai);
+    });
+    if (Object.keys(nilaiMap).length === 0) throw new Error("Tidak ada nama yang cocok dengan siswa di kelas aktif.");
+    await addDoc(nilaiCol(activeKelasId), { jenis: p.jenis || "tugas", nama: p.namaPenilaian, tanggal: p.tanggal, nilai: nilaiMap });
+    muatRiwayatNilai();
+    return `Nilai "${p.namaPenilaian}" tersimpan untuk ${Object.keys(nilaiMap).length} siswa.`;
+  }
+
+  if (type === "tambah_catatan") {
+    const s = cocokkanSiswaByNama(p.siswa);
+    if (!s) throw new Error("Nama siswa tidak ditemukan di kelas aktif.");
+    if (!p.tanggal || !p.isi) throw new Error("Tanggal / isi catatan tidak lengkap.");
+    await addDoc(catatanCol(activeKelasId, s.id), { tanggal: p.tanggal, isi: p.isi });
+    if (el("catatanSiswaSelect").value === s.id) muatCatatan(s.id);
+    return `Catatan untuk ${s.nama} tersimpan.`;
+  }
+
+  if (type === "tambah_siswa") {
+    const valids = (p.siswa || []).filter((s) => s.nama && s.nama.trim());
+    if (valids.length === 0) throw new Error("Tidak ada nama siswa yang valid.");
+    const batch = writeBatch(db);
+    valids.forEach((s) => { const ref = doc(siswaCol(activeKelasId)); batch.set(ref, { nama: s.nama.trim(), nis: (s.nis || "").trim() }); });
+    await batch.commit();
+    onKelasAktifChange();
+    return `${valids.length} siswa baru ditambahkan.`;
+  }
+
+  if (type === "tambah_kelas") {
+    if (!p.nama) throw new Error("Nama kelas tidak boleh kosong.");
+    await addDoc(kelasCol(), { nama: p.nama, mapel: p.mapel || "", dibuat: new Date().toISOString() });
+    muatKelas();
+    return `Kelas "${p.nama}" ditambahkan.`;
+  }
+
+  throw new Error("Tipe aksi tidak dikenali.");
+}
+
 async function muatRiwayatAbsensi() {
   if (!activeKelasId) return;
   showLoading(true);
@@ -1704,300 +2048,4 @@ el("materiListContainer").addEventListener("click", (e) => {
     openModal(`
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0;">${esc(m.judul)}</h3>
-        <button type="button" class="btn btn-sm btn-success" id="btnFullscreenModal">Mode Presentasi</button>
-      </div>
-      ${isShortCanva ? `<p class="hint" style="color:var(--danger);">Materi ini memakai link Canva pendek (canva.link) sehingga tidak bisa dipratinjau di sini. Edit materi ini dan ganti dengan link penuh dari Share &gt; Copy link di Canva.</p>` : ""}
-      <iframe id="previewIframe" src="${embedUrl}" style="width:100%; height:68vh; border:none; border-radius:8px; background:#f1f5f9;" allow="fullscreen" allowfullscreen></iframe>
-      <p style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
-        <a href="${esc(m.url)}" target="_blank" rel="noopener">Buka di tab baru / Link Asli</a>
-      </p>
-    `, true);
-
-    const iframeEl = document.getElementById("previewIframe");
-    const fullscreenBtn = document.getElementById("btnFullscreenModal");
-
-    const enterFullscreen = () => {
-      const req = iframeEl.requestFullscreen || iframeEl.webkitRequestFullscreen || iframeEl.msRequestFullscreen;
-      if (req) {
-        const result = req.call(iframeEl);
-        if (result && result.catch) result.catch(() => { /* browser blocked auto-fullscreen */ });
-      }
-    };
-
-    if (!isShortCanva) enterFullscreen();
-    fullscreenBtn.addEventListener("click", enterFullscreen);
-  }
-
-  if (btn.dataset.action === "edit-materi") {
-    const m = materiAll.find((x) => x.id === btn.dataset.id);
-    if (!m) return;
-    showEditMateriForm(m);
-  }
-
-  if (btn.dataset.action === "hapus-materi") hapusMateri(btn.dataset.docid);
-});
-
-function showEditMateriForm(m) {
-  const isLink = m.sumber === "link";
-  openModal(`
-    <h3>Edit Materi</h3>
-    <form id="formEditMateri">
-      <div class="form-group">
-        <label>Mata Pelajaran</label>
-        <input type="text" id="editMateriMapel" value="${esc(m.mapel)}" required>
-      </div>
-      <div class="form-group">
-        <label>Bab</label>
-        <input type="text" id="editMateriBab" value="${esc(m.bab)}" required>
-      </div>
-      <div class="form-group">
-        <label>Judul</label>
-        <input type="text" id="editMateriJudul" value="${esc(m.judul)}" required>
-      </div>
-      <div class="form-group">
-        <label>Sumber Materi</label>
-        <select id="editMateriSumber">
-          <option value="upload" ${!isLink ? 'selected' : ''}>Upload Berkas Baru (PDF/PPT)</option>
-          <option value="link" ${isLink ? 'selected' : ''}>Tempel Link Baru (Drive/Canva/dll)</option>
-        </select>
-      </div>
-      <div class="form-group" id="editMateriUploadGroup" style="display:${!isLink ? 'block' : 'none'};">
-        <label>Ganti Berkas (Opsional - Biarkan kosong jika tidak diganti)</label>
-        <input type="file" id="editFileMateri" accept=".pdf,.ppt,.pptx">
-      </div>
-      <div class="form-group" id="editMateriLinkGroup" style="display:${isLink ? 'block' : 'none'};">
-        <label>URL Link Materi</label>
-        <input type="text" id="editMateriLinkUrl" value="${isLink ? esc(m.url) : ''}" placeholder="https://www.canva.com/design/.../view">
-        <p class="hint" style="margin-bottom:0;">Khusus Canva: pakai link penuh (canva.com/design/.../view), bukan link pendek canva.link.</p>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
-      <p id="editMateriStatus" class="status-text" style="margin-top:10px;"></p>
-    </form>
-  `);
-
-  const selectSumber = document.getElementById("editMateriSumber");
-  selectSumber.addEventListener("change", () => {
-    const isL = selectSumber.value === "link";
-    document.getElementById("editMateriUploadGroup").style.display = isL ? "none" : "block";
-    document.getElementById("editMateriLinkGroup").style.display = isL ? "block" : "none";
-  });
-
-  document.getElementById("formEditMateri").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const mapel = document.getElementById("editMateriMapel").value.trim();
-    const bab = document.getElementById("editMateriBab").value.trim();
-    const judul = document.getElementById("editMateriJudul").value.trim();
-    const sumber = selectSumber.value;
-    const statusEl = document.getElementById("editMateriStatus");
-
-    if (!mapel || !bab || !judul) {
-      statusEl.textContent = "Mapel, Bab, dan Judul wajib diisi.";
-      return;
-    }
-
-    showLoading(true);
-    try {
-      let newUrl = m.url;
-      let newMimeType = m.mimeType || "";
-
-      if (sumber === "link") {
-        const linkInput = document.getElementById("editMateriLinkUrl").value.trim();
-        if (!linkInput) {
-          showLoading(false);
-          statusEl.textContent = "URL Link wajib diisi.";
-          return;
-        }
-        if (linkInput.includes("canva.link")) {
-          showLoading(false);
-          statusEl.textContent = "Link Canva pendek (canva.link) tidak bisa dipakai. Gunakan link penuh dari Share > Copy link.";
-          return;
-        }
-        newUrl = linkInput;
-        newMimeType = "";
-      } else {
-        const fileInput = document.getElementById("editFileMateri").files[0];
-        if (fileInput) {
-          statusEl.textContent = "Mengunggah berkas baru ke Cloudinary...";
-          const formData = new FormData();
-          formData.append("file", fileInput);
-          formData.append("upload_preset", UPLOAD_PRESET);
-          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-            method: "POST",
-            body: formData
-          });
-          if (!res.ok) throw new Error("Gagal mengunggah file baru.");
-          const data = await res.json();
-          newUrl = data.secure_url;
-          newMimeType = fileInput.type || (fileInput.name.endsWith(".pdf") ? "application/pdf" : "application/vnd.ms-powerpoint");
-        }
-      }
-
-      await updateDoc(doc(materiCol(), m.id), {
-        mapel, bab, judul, sumber, url: newUrl, mimeType: newMimeType
-      });
-
-      showLoading(false);
-      closeModal();
-      materiSelMapel = mapel;
-      materiSelBab = bab;
-      muatMateri();
-    } catch (err) {
-      console.error(err);
-      showLoading(false);
-      statusEl.textContent = "Gagal mengedit materi: " + err.message;
-    }
-  });
-}
-
-el("materiBreadcrumb").addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-breadcrumb]");
-  if (!btn) return;
-  if (btn.dataset.breadcrumb === "root") { materiSelMapel = null; materiSelBab = null; }
-  if (btn.dataset.breadcrumb === "mapel") { materiSelBab = null; }
-  updateMateriDatalists();
-  renderMateriLibrary();
-});
-
-async function hapusMateri(docId) {
-  if (!confirm("Hapus materi ini?")) return;
-  showLoading(true);
-  await deleteDoc(doc(materiCol(), docId));
-  showLoading(false);
-  muatMateri();
-}
-
-function buildEmbedUrl(m) {
-  let url = (m.url || "").trim();
-
-  // Handling Canva (link penuh: canva.com/design/{id}/{secret}/view)
-  if (url.includes("canva.com")) {
-    const canvaMatch = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)/);
-    if (canvaMatch) {
-      return `https://www.canva.com/design/${canvaMatch[1]}/${canvaMatch[2]}/view?embed`;
-    }
-    if (url.includes("/view")) {
-      return url.split("?")[0] + "?embed";
-    }
-    return url;
-  }
-
-  if (url.includes("canva.link")) {
-    return url;
-  }
-
-  // Handling Google Drive
-  let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
-
-  // Handling Google Docs/Slides/Sheets
-  match = url.match(/docs\.google\.com\/(presentation|document|spreadsheets)\/d\/([^/]+)/);
-  if (match) return `https://docs.google.com/${match[1]}/d/${match[2]}/embed`;
-
-  // Handling File Cloudinary / Direct Link (PDF / PPT / PPTX)
-  const lower = url.toLowerCase();
-  const isPdf = m.mimeType?.includes("pdf") || lower.endsWith(".pdf");
-  const isPpt = m.mimeType?.includes("presentation") || m.mimeType?.includes("powerpoint") || lower.endsWith(".ppt") || lower.endsWith(".pptx");
-
-  if (isPdf) {
-    return `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-  }
-
-  if (isPpt) {
-    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
-  }
-
-  return url;
-}
-
-// ================================================
-// REKAP / EXPORT EXCEL
-// ================================================
-async function fetchRekapKelas(kelasId) {
-  const siswaSnap = await getDocs(query(siswaCol(kelasId), orderBy("nama")));
-  const siswaList = siswaSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-  const pertemuanSnap = await getDocs(pertemuanCol(kelasId));
-  const absensiRekap = {};
-  siswaList.forEach((s) => { absensiRekap[s.id] = { hadir: 0, sakit: 0, izin: 0, dispen: 0, alpa: 0 }; });
-  pertemuanSnap.docs.forEach((d) => {
-    const data = d.data();
-    Object.entries(data.absensi || {}).forEach(([sid, status]) => {
-      if (absensiRekap[sid] && absensiRekap[sid][status] !== undefined) absensiRekap[sid][status]++;
-    });
-  });
-
-  const nilaiSnap = await getDocs(nilaiCol(kelasId));
-  const nilaiRekap = {};
-  siswaList.forEach((s) => { nilaiRekap[s.id] = { tugas: [], ulangan_harian: [], uts: [], uas: [] }; });
-  nilaiSnap.docs.forEach((d) => {
-    const data = d.data();
-    Object.entries(data.nilai || {}).forEach(([sid, val]) => {
-      if (nilaiRekap[sid] && nilaiRekap[sid][data.jenis]) nilaiRekap[sid][data.jenis].push(val);
-    });
-  });
-
-  const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
-
-  return siswaList.map((s, i) => {
-    const ab = absensiRekap[s.id];
-    const nl = nilaiRekap[s.id];
-    const semua = [...nl.tugas, ...nl.ulangan_harian, ...nl.uts, ...nl.uas];
-    return {
-      no: i + 1, nama: s.nama, nis: s.nis || "",
-      hadir: ab.hadir, sakit: ab.sakit, izin: ab.izin, dispen: ab.dispen, alpa: ab.alpa,
-      rataTugas: avg(nl.tugas), rataUH: avg(nl.ulangan_harian), rataUTS: avg(nl.uts), rataUAS: avg(nl.uas),
-      rataKeseluruhan: avg(semua)
-    };
-  });
-}
-
-function fmt(v) { return v == null ? "-" : v.toFixed(1); }
-
-function rowsToAoa(rows, withKelas) {
-  const header = withKelas
-    ? ["No", "Kelas", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Dispen", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"]
-    : ["No", "Nama", "NIS", "Hadir", "Sakit", "Izin", "Dispen", "Alpa", "Rata Tugas", "Rata UH", "Rata UTS", "Rata UAS", "Rata Keseluruhan"];
-  const body = rows.map((r) => withKelas
-    ? [r.no, r.kelasNama, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.dispen, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]
-    : [r.no, r.nama, r.nis, r.hadir, r.sakit, r.izin, r.dispen, r.alpa, fmt(r.rataTugas), fmt(r.rataUH), fmt(r.rataUTS), fmt(r.rataUAS), fmt(r.rataKeseluruhan)]);
-  return [header, ...body];
-}
-
-el("btnRekapKelas").addEventListener("click", async () => {
-  if (!activeKelasId) { el("rekapStatus").textContent = "Pilih kelas aktif dulu."; return; }
-  const kelas = kelasCache.find((k) => k.id === activeKelasId);
-  showLoading(true);
-  const rows = await fetchRekapKelas(activeKelasId);
-  showLoading(false);
-  if (rows.length === 0) { el("rekapStatus").textContent = "Kelas ini belum punya siswa."; return; }
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
-  XLSX.utils.book_append_sheet(wb, ws, "Rekap");
-  XLSX.writeFile(wb, `rekap-${kelas.nama}.xlsx`);
-  el("rekapStatus").textContent = `Rekap kelas ${kelas.nama} berhasil diunduh.`;
-});
-
-el("btnRekapSemua").addEventListener("click", async () => {
-  if (kelasCache.length === 0) { el("rekapStatus").textContent = "Belum ada kelas."; return; }
-  showLoading(true);
-  const wb = XLSX.utils.book_new();
-  const combined = [];
-  for (const k of kelasCache) {
-    const rows = await fetchRekapKelas(k.id);
-    rows.forEach((r) => combined.push({ ...r, kelasNama: k.nama }));
-    const sheetName = k.nama.replace(/[\\/?*[\]:]/g, "").substring(0, 31) || "Kelas";
-    const ws = XLSX.utils.aoa_to_sheet(rowsToAoa(rows, false));
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  }
-  const ringkasan = combined.map((r, i) => ({ ...r, no: i + 1 }));
-  const wsRingkasan = XLSX.utils.aoa_to_sheet(rowsToAoa(ringkasan, true));
-  XLSX.utils.book_append_sheet(wb, wsRingkasan, "Ringkasan Semua Kelas");
-  const order = ["Ringkasan Semua Kelas", ...wb.SheetNames.filter((n) => n !== "Ringkasan Semua Kelas")];
-  wb.SheetNames = order;
-  showLoading(false);
-  XLSX.writeFile(wb, "rekap-semua-kelas.xlsx");
-  el("rekapStatus").textContent = "Rekap semua kelas berhasil diunduh.";
-});
-</script>
- </body>
-</html>
+        <button type="button" class="bt
