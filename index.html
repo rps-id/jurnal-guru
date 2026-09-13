@@ -263,6 +263,7 @@ select.status-alpa { background: #fee2e2; color: #991b1b; font-weight: 600; bord
        <div class="card-header">
         <h3>Siswa <span id="siswaKelasLabel" class="muted-inline"></span></h3>
         <div class="header-actions">
+         <button type="button" class="btn btn-sm" id="btnTambahSiswaModal">+ Tambah Siswa</button>
          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadTemplate">Template Excel</button>
          <label class="btn btn-secondary btn-sm file-btn">Upload Excel<input type="file" id="fileSiswaExcel" accept=".xlsx,.xls" hidden></label>
         </div>
@@ -839,10 +840,61 @@ async function hapusKelas(kelasId) {
   muatKelas();
 }
 
+// ================================================
+// SISWA - TAMBAH MANUAL & EDIT
+// ================================================
+el("btnTambahSiswaModal").addEventListener("click", () => {
+  if (!activeKelasId) {
+    alert("Silakan pilih kelas terlebih dahulu untuk menambah siswa.");
+    return;
+  }
+  showSiswaForm();
+});
+
+function showSiswaForm(editId = null) {
+  const d = editId ? siswaCache.find((s) => s.id === editId) : { nama: "", nis: "" };
+  openModal(`
+    <h3>${editId ? "Edit" : "Tambah"} Siswa</h3>
+    <form id="formSiswa">
+      <div class="form-group">
+        <label>Nama Lengkap</label>
+        <input type="text" id="fSiswaNama" value="${esc(d.nama)}" required>
+      </div>
+      <div class="form-group">
+        <label>NIS (Opsional)</label>
+        <input type="text" id="fSiswaNis" value="${esc(d.nis || "")}">
+      </div>
+      <button type="submit" class="btn" style="width:100%;">Simpan</button>
+    </form>
+  `);
+  
+  el("formSiswa").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nama = el("fSiswaNama").value.trim();
+    const nis = el("fSiswaNis").value.trim();
+    if (!nama) return;
+    
+    showLoading(true);
+    try {
+      if (editId) {
+        await updateDoc(doc(db, "users", uid, "kelas", activeKelasId, "siswa", editId), { nama, nis });
+      } else {
+        await addDoc(siswaCol(activeKelasId), { nama, nis });
+      }
+      closeModal();
+      await onKelasAktifChange(); // Muat ulang siswa dan update seluruh tabel terkait
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat menyimpan data siswa.");
+    }
+    showLoading(false);
+  });
+}
+
 function renderTabelSiswa() {
   const tbody = el("tbodySiswa");
   if (!activeKelasId) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Pilih kelas terlebih dahulu.</td></tr>'; return; }
-  if (siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada siswa. Upload Excel atau unduh template di atas.</td></tr>'; return; }
+  if (siswaCache.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Belum ada siswa. Klik "+ Tambah Siswa" atau Upload Excel.</td></tr>'; return; }
 
   const { key, asc } = sortState.tableSiswa;
   let list = siswaCache.map((s, idx) => ({ ...s, originalNo: idx + 1 }));
@@ -855,13 +907,19 @@ function renderTabelSiswa() {
       <td class="col-no">${s.originalNo}</td>
       <td>${esc(s.nama)}</td>
       <td>${esc(s.nis || "-")}</td>
-      <td><button class="btn btn-sm btn-danger" data-action="hapus-siswa" data-id="${s.id}">Hapus</button></td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="edit-siswa" data-id="${s.id}">Edit</button>
+        <button class="btn btn-sm btn-danger" data-action="hapus-siswa" data-id="${s.id}">Hapus</button>
+      </td>
     </tr>
   `).join("");
 }
+
 el("tbodySiswa").addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-action='hapus-siswa']");
-  if (btn) hapusSiswa(btn.dataset.id);
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  if (btn.dataset.action === "edit-siswa") showSiswaForm(btn.dataset.id);
+  if (btn.dataset.action === "hapus-siswa") hapusSiswa(btn.dataset.id);
 });
 
 async function hapusSiswa(siswaId) {
@@ -1913,3 +1971,4 @@ el("btnRekapSemua").addEventListener("click", async () => {
 </script>
  </body>
 </html>
+```eof
